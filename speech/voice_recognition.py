@@ -119,7 +119,8 @@ class SpeechDetector:
 
         bing = BingSpeechAPI()
 
-        while True:
+        text = None
+        while text is None:
             cur_data = stream.read(self.CHUNK)
             slid_win.append(math.sqrt(abs(audioop.avg(cur_data, 4))))
 
@@ -151,7 +152,7 @@ class SpeechDetector:
                 slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
                 prev_audio = deque(maxlen=0.5 * rel)
                 audio2send = []
-                print "Listening ..."
+                #print "Listening ..."
 
             else:
                 prev_audio.append(cur_data)
