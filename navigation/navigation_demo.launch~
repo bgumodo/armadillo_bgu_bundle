@@ -3,7 +3,7 @@
 	
 	
 	<!--
-	For the navigation to work, the following arguments should be set:
+	For the navigation to word, the following arguments should be set:
 	
 		<arg name="move_base" 		value="true"/>
 		<arg name="lidar" 			value="true"/>
