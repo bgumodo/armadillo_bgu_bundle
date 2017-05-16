@@ -1,7 +1,7 @@
 Steps to follow:
 
 1. There is a library called libobj_pos.a that contains modified yolo code, and this is used for object identification.
-Access to this library happens via predict_scuares(OBJ_POS_PATH,*,*,*,..).
+Access to this library happens via function predict_scuares (misspelled)
 
 2. Usage:
 	(a): Update the location in the cmake file in place of: "/opt/object_positions/libobj_pos.a" 
