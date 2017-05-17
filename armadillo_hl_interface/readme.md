@@ -1,7 +1,7 @@
 # armadillo_hl_interface package
 ## General description
 This package includes separate interfaces for different robot actuators and modules (e.g. arm, driving, torso...), wrapped by c++ classes.
-In addition, it containes a basic framework for creating more complex actions using a finite state machine.  
+In addition, it contains a basic framework for creating more complex actions using a finite state machine.  
 ### Execution modes
 As a rule of thumb, every basic action can execute in 3 different 'modes'. For example, the *TorsoInterface::move(...)* methods:
 
@@ -31,9 +31,9 @@ void main(int argc, char **argv){
 }
 
 ```
-### Actions with coordinate parameteres
-Actions which get coordinates as parameters comes in 2 flavours:  
-1. Get coordinates as seperate parameteres of type *double* (one for each dimension).  
+### Actions with coordinate parameters
+Actions which get coordinates as parameters comes in 2 flavors:  
+1. Get coordinates as separate parameters of type *double* (one for each dimension).  
 In this case, coordinates are relative to robot.
 2. Get coordinates as one packed parameter of type *geometry_msgs::Pose*.  
 In this case, coordinates are relative to map.
@@ -91,7 +91,7 @@ static const float MAX_HEIGHT = MAX_HEIGHT_TORSO;
 
 ### DriverInterface (driver_interface.h)
 DriverInterface currently offers 2 types of navigation:  
-Simple navigation is done relative to the robot, and dosn't use move_base (hence- no collision cheking, use with care!).  
+Simple navigation is done relative to the robot, and doesn't use move_base (hence- no collision checking, use with care!).  
 Methods for simple navigation:  
 ```
 bool drive_block(double dist, double z, double vel=0.2);
@@ -114,7 +114,7 @@ void stop();
 **To be uploaded to git soon!**
 
 ### ObjectHandler (object_handler.h)
-Used to commuinicate with moveit PlanningSceneInterface, and in the future will hold different methods for indentifying and handling objects, as well as objects database.  
+Used to communicate with moveit PlanningSceneInterface, and in the future will hold different methods for identifying and handling objects, as well as objects database.  
 Note that currently both robotican's *find_object* and *object_handler* nodes needs to be initiated in-order to use this class.  
 Current available methods:
 ```
@@ -122,14 +122,15 @@ bool find_object(geometry_msgs::Pose &target, const std::string &name);
 ```
 
 ## FSM framework
-The FSM framework allows one to build simple finite state machines by assembeling different types of nodes together.  
+The FSM framework allows one to build simple finite state machines by assembling different types of nodes together.  
 A few classes are used here:
 - **FSMNode** := The base class for all FSM nodes. Declares a simple interface. All nodes should inherite from this class.
-- **FSM** := Represent a single FSM (and can be used as a node in other FSMs). allows a user to register nodes and to run the machine.
+- **FSM** := Represent a single FSM (and can be used as a node in other FSMs). Allows a user to register nodes and to run the machine.
 - **FuncFSMNode** := When a simple node with no inner state is needed, this class allows to quickly wrap a given function.
 - **DisjFSMNode** := A parallel node. Given a vecto of nodes, runs all of them and returns the answer of the first node to finish.
 - **ConjFSMNode** := A parallel node. Given a vector of nodes, runs all of them and returns a vector of answers.  
-**a few other nodes will be added soon!**  
+
+**A few other nodes will be added soon!**  
 
 A simple use example:
 ```
