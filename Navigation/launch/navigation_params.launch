@@ -3,7 +3,7 @@
 	
 	
 	<!--
-	For the navigation to work, the following arguments should be set:
+	For the navigation to word, the following arguments should be set:
 	
 		<arg name="move_base" 		value="true"/>
 		<arg name="lidar" 			value="true"/>
@@ -12,7 +12,7 @@
 	-->
 	
 		
-	<rosparam file="$(find nav_bgu)/navigation/config/move_base_params.yaml" command="load" ns="move_base"/>
+	<rosparam file="$(find Navigation)/navigation/config/move_base_params.yaml" command="load" ns="move_base"/>
 	
 	<node name="$(anon dynparam)" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters move_base">
     	<param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
