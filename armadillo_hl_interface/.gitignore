@@ -1,0 +1,7 @@
+src/arm.cpp
+src/drive.cpp
+src/arm_interface.cpp
+src/arm_interface.cpp.old
+
+include/armadillo_hl_interface/arm_interface.h
+include/armadillo_hl_interface/arm_interface.h.old

@@ -1,0 +1,3 @@
+[submodule "armadillo_hl_interface"]
+	path = armadillo_hl_interface
+	url = ../armadillo_hl_interface/

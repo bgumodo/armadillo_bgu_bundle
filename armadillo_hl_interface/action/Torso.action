@@ -1,0 +1,8 @@
+# goal: final height
+float64 height
+---
+# result: height we've reached
+float64 height
+---
+# feedback: current height
+float64 height

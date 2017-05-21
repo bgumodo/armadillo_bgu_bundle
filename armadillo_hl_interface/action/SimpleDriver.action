@@ -1,0 +1,9 @@
+# goal: direction, speed and distance of movement
+geometry_msgs/Twist cmd
+float64 distance
+---
+# result: distance we've covered
+float64 distance
+---
+# feedback: distance we've covered so far
+float64 distance
