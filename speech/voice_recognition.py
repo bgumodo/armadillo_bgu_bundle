@@ -12,10 +12,18 @@ import time
 import math
 
 from bing import BingSpeechAPI
+from std_msgs.msg import String
+from std_srvs.srv import Trigger
+
+import rospy
+
+__author__ = 'dan'
 
 
 class SpeechDetector:
     def __init__(self):
+        self.pub = rospy.Publisher('speech_text', String, queue_size=10)
+
         # Microphone stream config.
         self.CHUNK = 8192#1024  # CHUNKS of bytes to read each time from mic
         self.FORMAT = pyaudio.paInt16
@@ -42,7 +50,7 @@ class SpeechDetector:
             average intensities while you're talking and/or silent. The average
             is the avg of the .2 of the largest intensities recorded.
         """
-        print "Getting intensity values from mic."
+        rospy.loginfo("Getting intensity values from mic.")
         p = pyaudio.PyAudio()
         stream = p.open(format=self.FORMAT,
                         channels=self.CHANNELS,
@@ -54,8 +62,8 @@ class SpeechDetector:
                   for x in range(num_samples)]
         values = sorted(values, reverse=True)
         r = sum(values[:int(num_samples * 0.2)]) / int(num_samples * 0.2)
-        print " Finished "
-        print " Average audio intensity is ", r
+        rospy.loginfo(" Finished ")
+        rospy.loginfo(" Average audio intensity is " + str(r))
         stream.close()
         p.terminate()
 
@@ -66,7 +74,7 @@ class SpeechDetector:
 
         self.THRESHOLD = r + 100
 
-        print 'Threshold:', self.THRESHOLD
+        rospy.loginfo('Threshold:' + str(self.THRESHOLD))
 
     def save_speech(self, data, p):
         """
@@ -107,7 +115,7 @@ class SpeechDetector:
                         rate=self.RECORD_RATE,
                         input=True,
                         frames_per_buffer=self.CHUNK)
-        print "* Mic set up and listening. "
+        rospy.loginfo("* Mic set up and listening. ")
 
         audio2send = []
         cur_data = ''  # current chunk of audio data
@@ -126,12 +134,12 @@ class SpeechDetector:
 
             if sum([x > self.THRESHOLD for x in slid_win]) > 0:
                 if started == False:
-                    print "Starting recording of phrase"
+                    rospy.loginfo("Starting recording of phrase")
                     started = True
                 audio2send.append(cur_data)
 
             elif started:
-                print "Finished recording, decoding phrase"
+                rospy.loginfo("Finished recording, decoding phrase")
                 filename = self.save_speech(list(prev_audio) + audio2send, p)
 
                 wave_file = wave.open(filename, 'rb')
@@ -140,9 +148,12 @@ class SpeechDetector:
 
                 try:
                     text = bing.recognize(speech, language='en-US')
-                    print('STT:{}'.format(text.encode('utf-8')))
+                    text = text.encode('utf-8')
+                    rospy.loginfo('STT:{}'.format(text))
+                    self.pub.publish(String(text))
+
                 except ValueError:
-                    print('STT: ValueError')
+                    rospy.loginfo('STT: ValueError')
                 finally:
                     # Removes temp audio file
                     os.remove(filename)
@@ -152,18 +163,40 @@ class SpeechDetector:
                 slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
                 prev_audio = deque(maxlen=0.5 * rel)
                 audio2send = []
-                #print "Listening ..."
+                #rospy.loginfo("Listening ...")
 
             else:
                 prev_audio.append(cur_data)
 
-        print "* Done listening"
+        rospy.loginfo("* Done listening")
         stream.close()
         p.terminate()
 
-def main():
+
+def run_speech_to_text(ignore_me):
     sd = SpeechDetector()
     sd.run()
+
+
+def run_text_to_speech(ignore_me):
+    bing = BingSpeechAPI()
+    bing.text_to_speech(text='Here is your coffee')
+
+
+def main():
+    NODE_NAME = "SpeechAPI"
+    PACKAGE_NAME = "speech_api"
+    debugLevel = rospy.DEBUG
+
+    fname = NODE_NAME
+    rospy.init_node(NODE_NAME, anonymous=False, log_level=debugLevel)
+
+    rospy.loginfo("{}: Initializing speech api node".format(fname))
+
+    service = rospy.Service('speech_to_text', Trigger, run_speech_to_text)
+    service = rospy.Service('text_to_speech', Trigger, run_text_to_speech)
+
+    rospy.spin()
 
 if __name__ == "__main__":
     main()

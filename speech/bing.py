@@ -173,6 +173,29 @@ class BingSpeechAPI:
 
         return data
 
+    def text_to_speech(self, text='Here is your coffee'):
+        import logging
+
+        logging.basicConfig(level=logging.DEBUG)
+
+        try:
+            speech_raw_data = self.synthesize(text, stream=None)
+
+            temp_wave_file_path = 'temp_speech.wav'
+            temp_wave_file = wave.open(temp_wave_file_path, 'wb')
+            try:
+                temp_wave_file.setframerate(16000)
+                temp_wave_file.setsampwidth(2)
+                temp_wave_file.setnchannels(1)
+                temp_wave_file.writeframes(speech_raw_data)
+            finally:
+                temp_wave_file.close()
+
+            play_wave_file(temp_wave_file_path)
+
+        except RequestError as e:
+            print("Could not request results from Microsoft Bing Voice Recognition service; {0}".format(e))
+
     @staticmethod
     def to_wav(raw_data):
         # generate the WAV file contents
@@ -233,32 +256,6 @@ def play_wave_file(wave_file_path):
     p.terminate()
 
 
-def synthesize(text='Here is your coffee'):
-    import logging
-
-    logging.basicConfig(level=logging.DEBUG)
-
-    bing = BingSpeechAPI()
-
-    try:
-        speech_raw_data = bing.synthesize(text, stream=None)
-
-        temp_wave_file_path = 'temp_speech.wav'
-        temp_wave_file = wave.open(temp_wave_file_path, 'wb')
-        try:
-            temp_wave_file.setframerate(16000)
-            temp_wave_file.setsampwidth(2)
-            temp_wave_file.setnchannels(1)
-            temp_wave_file.writeframes(speech_raw_data)
-        finally:
-            temp_wave_file.close()
-
-        play_wave_file(temp_wave_file_path)
-
-    except RequestError as e:
-        print("Could not request results from Microsoft Bing Voice Recognition service; {0}".format(e))
-
-
 def recognize(wave_file_path='bring_coffee.wav'):
     import logging
 
@@ -280,7 +277,9 @@ def main():
 
     recognized_text = recognize()
     print(recognized_text)
-    #synthesize()
+
+    # bing = BingSpeechAPI()
+    # bing.text_to_speech()
 
 
 if __name__ == '__main__':
