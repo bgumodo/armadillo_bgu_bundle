@@ -1,0 +1,6 @@
+string name
+int64 h
+int64 s
+int64 v
+int64 tolerance
+---
