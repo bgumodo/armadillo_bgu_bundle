@@ -56,6 +56,7 @@ ros::Publisher *pose_pub;
 int minH, maxH;
 int minS, maxS;
 int minV, maxV;
+
 std::string obj_name;
 boost::atomic<bool> working;
 
@@ -87,22 +88,22 @@ void lookAt( double x, double y, double z) {
     // The target point, expressed in the requested frame
     geometry_msgs::PointStamped point;
     point.header.frame_id = "base_link";
-    point.point.x = x; 
-    point.point.y = y; 
-    point.point.z = z;
-    goal.target = point;    
+    point.point.x 	= 	x; 
+    point.point.y 	= 	y; 
+    point.point.z 	= 	z;
+    goal.target 	= 	point;    
    
     // Pointing to high-def cam frame
-    goal.pointing_frame = "kinect2_depth_frame";
-    goal.pointing_axis.x = 1;
-    goal.pointing_axis.y = 0;
-    goal.pointing_axis.z = 0;
+    goal.pointing_frame 	= 	"kinect2_depth_frame";
+    goal.pointing_axis.x 	= 	1;
+    goal.pointing_axis.y 	= 	0;
+    goal.pointing_axis.z 	= 	0;
 
     // Take at least 0.5 seconds to get there
-    goal.min_duration = ros::Duration(0.5);
+    goal.min_duration 	= 	ros::Duration(0.5);
 
     // And go no faster than 1 rad/s
-    goal.max_velocity = 1.0;	
+    goal.max_velocity 	= 	1.0;	
 }
 
 float linearMotion() {
@@ -126,7 +127,7 @@ void moveBody(const sensor_msgs::PointCloud2ConstPtr& input) {
 void moveHead(const sensor_msgs::PointCloud2ConstPtr& input) {	
    	switch(curr_location) {
    		case HEAD_FRONT:
-	   		lookAt(2.0, 1.0, 1.2);
+	   		lookAt (2.0, 1.0, 1.2);
    			break;		
    	}
 }
@@ -171,9 +172,9 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& input)
     robotican_common::find_results res;
     if (have_object) {
 		res.success = true;
-        res.target_pose.position.x = obj.x;
-        res.target_pose.position.y = obj.y;
-        res.target_pose.position.z = obj.z;
+        res.target_pose.position.x 		= 	obj.x;
+        res.target_pose.position.y 		= 	obj.y;
+        res.target_pose.position.z 		= 	obj.z;
     }
     else{
     	res.success = false;
@@ -302,15 +303,15 @@ bool find_object(Mat input, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudp, Poin
 			putText( input, str, mc, CV_FONT_HERSHEY_COMPLEX, 0.4, Scalar(255,255,255), 1, 8);				
 		}			
     }
+    
     cvWaitKey(1);
     sleep(5);
     out_msg.image    = input;
     out_msg.encoding = "bgr8";
-    result_image_pub.publish(out_msg.toImageMsg());
-	
-	delete image_iplimage;
-	input.release();
-	
+    result_image_pub.publish(out_msg.toImageMsg());	
+    
+    delete image_iplimage;
+	input.release();	
     return ok;
 }
 
@@ -321,12 +322,12 @@ int ifThatColourIsThere(Mat input, labeld_squares* detections, int detect_count)
 	int found_idx = -1;	
 	int count = 0;	
 	for (int i = 0; i < detect_count; ++i) {	
-		if ((strcmp("apple", detections[i].label) == 0 || strcmp("cup", detections[i].label) == 0)  && detections[i].prob > 0.2) 
+		if ( ( strcmp ( obj_name, detections[i].label ) == 0 )  && detections[i].prob > 0.3 ) 
 		{			 
-			std::cout << "\nFound "<<detections[i].label << " with prob "<<detections[i].prob * 100 << "\n";			
+			/* std::cout << "\nFound "<<detections[i].label << " with prob "<<detections[i].prob * 100 << "\n";			
 			std::cout << detections[i].top  << " " << detections[i].bot << " " << detections[i].left << " " <<  detections[i].right << " " <<
 						(int)(detections[i].top + detections[i].bot)/2 << " " << (int)(detections[i].left + detections[i].right)/2 << "\n";
-	
+			*/
 			int count_temp = 0;
 			int found_idx_temp = -1;
 			int t = detections[i].top;
