@@ -1,0 +1,8 @@
+# goal: timeout seconds, t=0 for no timeout case
+int32 timeout
+---
+# result: resulted text from speech
+string res
+---
+# feedback: seconds to timeout
+int32 countdown
