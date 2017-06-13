@@ -1,0 +1,17 @@
+<room>
+	<name>table_room</name>
+	<x>-0.5</x>
+	<y>-0.4</y>
+</room>
+
+<room>
+	<name>coffee_room_door</name>
+	<x>-9.0</x>
+	<y>0.0</y>
+</room>
+
+<room>
+	<name>coffee_room</name>
+	<x>-0.5</x>
+	<y>-0.4</y>
+</room>

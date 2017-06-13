@@ -452,6 +452,16 @@ bool ArmInterface::place_block(const std::string object, const geometry_msgs::Po
     return _place_client.getState() == GoalState::SUCCEEDED;
 }
 
+void ArmInterface::push_button(const geometry_msgs::Pose &pose){
+    if(!_ready){
+        ROS_ERROR("ArmInterface is not ready!");
+        return;
+    }
+
+    // move to starting position
+    
+}
+
 ArmInterface::~ArmInterface()
 {
     // TODO: bom 

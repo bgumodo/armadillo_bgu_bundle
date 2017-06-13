@@ -44,6 +44,8 @@ class DriverInterface{
         typedef actionlib::SimpleActionClient<armadillo_hl_interface::SimpleDriverAction> SDClient;
         typedef actionlib::SimpleClientGoalState GoalState;
         typedef void (*CallbackBool)(bool success);
+
+        typedef std::pair<std::string, geometry_msgs::Pose> dest_dict_item;
     
         boost::atomic<bool> _ready;
         MBClient _mb_client;
