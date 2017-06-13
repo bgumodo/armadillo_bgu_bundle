@@ -1,7 +1,11 @@
 <launch>
+    <!--<include file="$(find Navigation)/launch/navigation_params.launch"/>-->
+
     <node name="objects_handler" pkg="robotican_common" type="objects_handler" output="screen"/>
 
     <node name="find_object_node" pkg="robotican_common" type="find_objects_node" output="screen"/>
+
+    <!--<node name="speech_node" pkg="speech_api" type="voice_recognition.py" output="screen"/>-->
 
     <node name="testing" pkg="armadillo_hl_interface" type="testing" output="screen"/>
 </launch>
