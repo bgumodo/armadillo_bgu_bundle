@@ -90,10 +90,11 @@ TorsoInterface::TorsoInterface():
     // wait for server to come-up
     ros::Duration w(1.0);
     while(!_torso_client.waitForServer() && ros::ok()){
-		ROS_INFO("Waiting for action servers...");
+		ROS_INFO("waiting for torso action server...");
         w.sleep();
 	}
 
+    // interface is ready
     _ready = true;
 }
 

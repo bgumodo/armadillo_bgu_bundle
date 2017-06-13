@@ -21,7 +21,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_action_files(
   DIRECTORY action
-  FILES SimpleDriver.action Torso.action
+  FILES SimpleDriver.action Torso.action SpeechToText.action
 )
 
 add_message_files()
@@ -38,10 +38,11 @@ catkin_package(
 add_executable(testing
   src/fsm.cpp
   src/head_interface.cpp
-  # src/arm_interface.cpp
+  src/arm_interface.cpp
   src/object_handler.cpp
   src/driver_interface.cpp
   src/torso_interface.cpp
+  src/speech_interface.cpp
   src/test.cpp)
 
 target_link_libraries(testing ${catkin_LIBRARIES})

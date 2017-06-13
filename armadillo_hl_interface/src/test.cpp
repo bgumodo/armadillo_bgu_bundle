@@ -1,22 +1,28 @@
 #include <ros/ros.h>
+#include <geometry_msgs/Pose.h>
 #include <armadillo_hl_interface/head_interface.h>
 #include <armadillo_hl_interface/driver_interface.h>
 #include <armadillo_hl_interface/torso_interface.h>
+#include <armadillo_hl_interface/speech_interface.h>
+#include <armadillo_hl_interface/arm_interface.h>
+#include <armadillo_hl_interface/object_handler.h>
 #include <armadillo_hl_interface/fsm.h>
 
 HeadInterface *hi;
 DriverInterface *di;
 TorsoInterface *ti;
+ArmInterface *ai;
+SpeechInterface *si;
 
 int head(){
     // head up
-    hi->point_head_block(1.0, 0.3, 0.3);
+    hi->move_head_block(1.0, 0.3, 0.3);
     // head down
-    hi->point_head_block(1.0, 0.0, 0.0);
+    hi->move_head_block(1.0, 0.0, 0.0);
     // head up
-    hi->point_head_block(1.0, 0.3, 0.3);
+    hi->move_head_block(1.0, 0.3, 0.3);
     // head down
-    hi->point_head_block(1.0, 0.0, 0.0);
+    hi->move_head_block(1.0, 0.0, 0.0);
     // next node
     return 3;
 }
@@ -39,6 +45,10 @@ int drive(){
     return 1;
 }
 
+void cb(bool success, std::string text){
+    ROS_INFO("text");
+}
+
 int main(int argc, char **argv){
     // init node
     ros::init(argc, argv, "test_node");
@@ -48,37 +58,60 @@ int main(int argc, char **argv){
     HeadInterface l_hi;
     DriverInterface l_di;
     TorsoInterface l_ti;
+    ArmInterface l_ai;
+    SpeechInterface l_si;
 
+    ROS_INFO("ready!\n");
     // make them global
     hi = &l_hi;
     di = &l_di;
     ti = &l_ti;
+    ai = &l_ai;
+    si = &l_si;
 
+    ObjectHandler oh;
     // some time to setup eveything
     ros::Duration w(2);
     w.sleep();
 
-    // build nodes
-    // a small shortcut: note that we can also build a vector of functions, and ConjFSMNode will wrap them with FuncFSMNode for us.
-    FSM fsm;
-    FuncFSMNode a(&drive);
-    FuncFSMNode b(&head);
-    FuncFSMNode c(&torso);
+    // l_ai.move_block("pre_grasp3");
+    // geometry_msgs::Pose p;
 
-    std::vector<FSMNode*> nodes;
-    nodes.push_back(&b);
-    nodes.push_back(&c);
+    // if(oh.find_object(p, "can")){
+    //     ROS_INFO("Found can, picking up...");
+    //     l_ai.pickup_block("can", p);
+    //     ROS_INFO("Placing back...");
+    //     l_ai.place("can", p);
+    //     ROS_INFO("done!");
+    // }
+    // else
+    //     ROS_INFO("Can't find object!");
 
-    ConjFSMNode d(nodes);
+    // // build nodes
+    // // a small shortcut: note that we can also build a vector of functions, and ConjFSMNode will wrap them with FuncFSMNode for us.
+    // FSM fsm;
+    // FuncFSMNode a(&drive);
+    // FuncFSMNode b(&head);
+    // FuncFSMNode c(&torso);
 
-    // register nodes to fsm
-    // 0 and 1 are resrved to failure and success, respectively. FSM starts from node 2, unless other node is specified.
-    fsm.add_node(2, &d);
-    fsm.add_node(3, &a);
+    // std::vector<FSMNode*> nodes;
+    // nodes.push_back(&b);
+    // nodes.push_back(&c);
 
-    // run FSM
-    if(fsm.run())
-        ROS_INFO("Success!");
+    // ConjFSMNode d(nodes);
+
+    // // register nodes to fsm
+    // // 0 and 1 are resrved to failure and success, respectively. FSM starts from node 2, unless other node is specified.
+    // fsm.add_node(2, &d);
+    // fsm.add_node(3, &a);
+
+    // // run FSM
+    // if(fsm.run())
+    //     ROS_INFO("Success!");
+
+    // l_si.speech_to_text(5, cb);
+
+
 
     ros::spin();
     return 0;

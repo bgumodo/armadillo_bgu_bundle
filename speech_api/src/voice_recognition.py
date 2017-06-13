@@ -10,6 +10,7 @@ import audioop
 from collections import deque
 import time
 import math
+from threading import Thread
 
 from bing import BingSpeechAPI
 from std_msgs.msg import String
@@ -174,15 +175,18 @@ class SpeechDetector:
         p.terminate()
 
 
-def run_speech_to_text(ignore_me):
+def speech_to_text_thread():
     sd = SpeechDetector()
     sd.run()
 
+def run_speech_to_text(ignore_me):
+    t = Thread(target=speech_to_text_thread)
+    t.start()
+    return True, ""
 
 def run_text_to_speech(ignore_me):
     bing = BingSpeechAPI()
     bing.text_to_speech(text='Here is your coffee')
-
 
 def main():
     NODE_NAME = "SpeechAPI"

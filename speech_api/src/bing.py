@@ -158,7 +158,7 @@ class BingSpeechAPI:
         headers = {
             "Content-type": "application/ssml+xml",
             "X-Microsoft-OutputFormat": "raw-16khz-16bit-mono-pcm",
-            "Authorization": "Bearer " + self.access_token,
+            "Authorization": "Bearer " + str(self.access_token),
             "X-Search-AppId": "07D3234E49CE426DAA29772419F436CA",
             "X-Search-ClientID": str(uuid.uuid1()).replace('-', ''),
             "User-Agent": "TTSForPython"

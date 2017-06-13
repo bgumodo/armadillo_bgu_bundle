@@ -63,18 +63,18 @@ link_directories(
 #
 # Yolo detector dependancies added below.
 find_package(OpenCV)
-include_directories(${OpenCV_INCLUDE_DIRS} catkin_ws/src/object_identification/include)
+include_directories(${OpenCV_INCLUDE_DIRS} catkin_ws/src/armadillo_bgu_bundle/object_identification/include)
 #
 #
-add_executable(find_objects_node src/find_objects.cpp)
-add_dependencies(find_objects_node ${PROJECT_NAME}_gencfg)
-add_dependencies(find_objects_node ${PROJECT_NAME}_gencpp)
+add_executable(find_objects src/find_objects.cpp)
+add_dependencies(find_objects ${PROJECT_NAME}_gencfg)
+add_dependencies(find_objects ${PROJECT_NAME}_gencpp)
 #
 # message("----------------------------------------")
 # message(${object_identification_SOURCE_DIR}/src/libobj_pos.a) # tested for relative path
 # message("----------------------------------------")
 #
-target_link_libraries(find_objects_node ${catkin_LIBRARIES} ${OpenCV_LIBS} -pthread ${object_identification_SOURCE_DIR}/src/libobj_pos.a)
+target_link_libraries(find_objects ${catkin_LIBRARIES} ${OpenCV_LIBS} -pthread ${object_identification_SOURCE_DIR}/src/libobj_pos.a)
 # (ends).
 
 install(DIRECTORY include/${PROJECT_NAME}/

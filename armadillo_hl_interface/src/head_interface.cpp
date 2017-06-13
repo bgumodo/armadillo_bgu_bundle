@@ -1,35 +1,55 @@
 #include <ros/ros.h>
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
-
-#include <actionlib/client/simple_action_client.h>
-#include <pr2_controllers_msgs/PointHeadAction.h>
-#include <pr2_controllers_msgs/PointHeadGoal.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/Pose.h>
-
 #include <armadillo_hl_interface/head_interface.h>
+
 
 HeadInterface::HeadInterface():
     _ready(false),
-    _point_head_client("/pan_tilt_trajectory_controller/point_head_action", true)
+    _point_head_client("/pan_tilt_trajectory_controller/point_head_action", true),
+    _pan_tilt_client("/pan_tilt_trajectory_controller/follow_joint_trajectory", true)
 {
+
+    // wait for action serveres
     ros::Duration w(1.0);
-    while(!_point_head_client.waitForServer() && ros::ok()){
-        ROS_INFO("Waiting for action servers...");
+    while(!_point_head_client.waitForServer() && !_pan_tilt_client.waitForServer() && ros::ok()){
+        ROS_INFO("waiting for action servers...");
         w.sleep();
     }
     _ready = true;
 }
 
-HeadInterface::HIGoal HeadInterface::xyz_to_goal(std::string ref_frame, double x, double y, double z, double vel){
+HeadInterface::PTGoal HeadInterface::pan_tilt_to_goal(double pan, double tilt, double vel){
+    PTGoal goal;
+
+    std::vector<double> pan_tilt;
+    pan_tilt.push_back(pan);
+    pan_tilt.push_back(tilt);
+
+    goal.trajectory.joint_names.push_back("head_pan_joint");
+    goal.trajectory.joint_names.push_back("head_tilt_joint");
+
+    goal.trajectory.points.resize(1);
+    goal.trajectory.points[0].time_from_start = ros::Duration(1.0);
+    goal.trajectory.points[0].positions = pan_tilt;
+    goal.trajectory.points[0].velocities.push_back(vel);
+    goal.trajectory.points[0].velocities.push_back(vel);
+
+    goal.trajectory.header.stamp = ros::Time::now();
+
+    return goal;
+}
+
+HeadInterface::HIGoal HeadInterface::pose_to_goal(const geometry_msgs::Pose &pose, double vel){
     HIGoal goal;
 
     geometry_msgs::PointStamped point;
-    point.header.frame_id = ref_frame;
-    point.point.x = x;
-    point.point.y = y;
-    point.point.z = z;
+    point.header.frame_id = "map";
+    point.point.x = pose.position.x;
+    point.point.y = pose.position.y;
+    point.point.z = pose.position.z;
 
     goal.target = point;
     goal.pointing_frame = "kinect2_depth_frame";
@@ -43,39 +63,46 @@ HeadInterface::HIGoal HeadInterface::xyz_to_goal(std::string ref_frame, double x
     return goal;
 }
 
-bool HeadInterface::point_head_block(double x, double y, double z, double vel){
+bool HeadInterface::move_head_block(double pan, double tilt, double vel){
     if(!_ready){
         ROS_ERROR("HeadInterface is not ready!");
         return false;
     }
-    HIGoal goal = xyz_to_goal("head_link", x, y, z, vel);
-    _point_head_client.sendGoalAndWait(goal);
-    return _point_head_client.getState() == GoalState::SUCCEEDED;
+    
+    PTGoal goal = pan_tilt_to_goal(pan, tilt, vel);
+    _pan_tilt_client.sendGoal(goal);
+
+    return _pan_tilt_client.getState() == GoalState::SUCCEEDED;
 }
 
-bool HeadInterface::point_head_block(const geometry_msgs::Pose &pose, double vel){
+bool HeadInterface::move_head_block(const geometry_msgs::Pose &pose, double vel){
     if(!_ready){
         ROS_ERROR("HeadInterface is not ready!");
         return false;
     }
-    HIGoal goal = xyz_to_goal("map", pose.position.x, pose.position.y, pose.position.z, vel);
+
+    HIGoal goal = pose_to_goal(pose, vel);
     _point_head_client.sendGoalAndWait(goal);
     return _point_head_client.getState() == GoalState::SUCCEEDED;
 }
 
-void HeadInterface::point_head(double x, double y, double z, double vel){
-    if(!_ready)
+void HeadInterface::move_head(double pan, double tilt, double vel){
+    if(!_ready){
         ROS_ERROR("HeadInterface is not ready!");
-    else{
-        HIGoal goal = xyz_to_goal("head_link", x, y, z, vel);
-        _point_head_client.sendGoal(goal);
+        return;
     }
+
+    PTGoal goal = pan_tilt_to_goal(pan, tilt, vel);
+    _pan_tilt_client.sendGoal(goal);
 }
 
-void HeadInterface::point_head(const geometry_msgs::Pose &pose, double vel){
-    if(!_ready)
+void HeadInterface::move_head(const geometry_msgs::Pose &pose, double vel){
+    if(!_ready){
         ROS_ERROR("HeadInterface is not ready!");
-    HIGoal goal = xyz_to_goal("map", pose.position.x, pose.position.y, pose.position.z, vel);
+        return;
+    }
+
+    HIGoal goal = pose_to_goal(pose, vel);
     _point_head_client.sendGoal(goal);
 }
 
@@ -83,26 +110,28 @@ void HeadInterface::generic_done_callback(const CallbackBool f, const GoalState 
     f(state == GoalState::SUCCEEDED);
 }
 
-void HeadInterface::point_head(const CallbackBool callback, double x, double y, double z, double vel){
-    if(!_ready)
+void HeadInterface::move_head(const CallbackBool callback, double pan, double tilt, double vel){
+    if(!_ready){
         ROS_ERROR("HeadInterface is not ready!");
-    else{
-        HIGoal goal = xyz_to_goal("head_link", x, y, z, vel);
-        _point_head_client.sendGoal(goal, boost::bind(&HeadInterface::generic_done_callback, boost::ref(this), callback, _1));
+        return;
     }
+
+    PTGoal goal = pan_tilt_to_goal(pan, tilt, vel);
+    _pan_tilt_client.sendGoal(goal, boost::bind(&HeadInterface::generic_done_callback, boost::ref(this), callback, _1));
 }
 
-void HeadInterface::point_head(const CallbackBool callback, const geometry_msgs::Pose &pose, double vel){
+void HeadInterface::move_head(const CallbackBool callback, const geometry_msgs::Pose &pose, double vel){
     if(!_ready)
         ROS_ERROR("HeadInterface is not ready!");
     else{
-        HIGoal goal = xyz_to_goal("map", pose.position.x, pose.position.y, pose.position.z, vel);
+        HIGoal goal = pose_to_goal(pose, vel);
         _point_head_client.sendGoal(goal, boost::bind(&HeadInterface::generic_done_callback, boost::ref(this), callback, _1));
     }
 }
 
 void HeadInterface::stop(){
     _point_head_client.cancelAllGoals();
+    _pan_tilt_client.cancelAllGoals();
 }
 
 HeadInterface::~HeadInterface(){

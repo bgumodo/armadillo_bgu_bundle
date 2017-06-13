@@ -14,8 +14,8 @@
 #include <actionlib/client/simple_action_client.h>
 #include <pr2_controllers_msgs/PointHeadAction.h>
 
-#include <robotican_common/find_results.h>
-#include <robotican_common/find_obj.h>
+#include <object_identification/find_results.h>
+#include <object_identification/find_obj.h>
 #include <boost/atomic.hpp>
 
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::PointHeadAction> PointHeadClient;
@@ -29,7 +29,7 @@ using namespace cv;
 #include "opencv2/highgui/highgui_c.h"
 #endif
 #include "detector.h"
-#define OBJ_POS_PATH  "/home/lerasht/catkin_ws/src/object_identification/src/"
+#define OBJ_POS_PATH  "/home/juvy/catkin_ws/src/armadillo_bgu_bundle/object_identification/src/"
 
 bool debug_vision = false;
 
@@ -144,6 +144,7 @@ void rotateNext(const sensor_msgs::PointCloud2ConstPtr& input) {
 /* As long object was not found and we havn't completed a cicle. */
 void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& input) 
 {
+	ROS_INFO("got a pointcloud...");
 	pcl::PointCloud<pcl::PointXYZRGBA> cloud;
 	pcl::fromROSMsg (*input, cloud);
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudp (new pcl::PointCloud<pcl::PointXYZRGBA> (cloud));
@@ -173,7 +174,7 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& input)
 
     waitKey(1);
     
-    robotican_common::find_results res;
+    object_identification::find_results res;
     
     if (have_object) {
 		res.success = true;
@@ -401,7 +402,7 @@ ros::NodeHandle *n;
 
 // TODO: change from global vars to boost::bind
 
-bool trigger_search(robotican_common::find_obj::Request &req, robotican_common::find_obj::Response &res) 
+bool trigger_search(object_identification::find_obj::Request &req, object_identification::find_obj::Response &res) 
 {
 	if(!working) {
 		working = true;
@@ -413,7 +414,9 @@ bool trigger_search(robotican_common::find_obj::Request &req, robotican_common::
 		minA	=	100,					maxA	=	50000; 	
 		
 		obj_name = req.name;
+		ROS_INFO("Starting search...");
 		ros::Subscriber pcl_sub = n->subscribe("/kinect2/qhd/points", 10, cloud_cb);
+		ros::spin();
 	}
 	return true;
 }
@@ -422,9 +425,9 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "find_objects_node");
     n = new ros::NodeHandle();
     working = false;
-    RobotHead();
+    // RobotHead();
     
-    ros::Publisher pub = n->advertise<robotican_common::find_results>("find_results", 10);
+    ros::Publisher pub = n->advertise<object_identification::find_results>("find_results", 10);
 	ros::ServiceServer srv = n->advertiseService("find_object", trigger_search);
 
 	pose_pub = &pub;
