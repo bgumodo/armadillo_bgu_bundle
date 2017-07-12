@@ -9,7 +9,9 @@
 #include <geometry_msgs/Pose.h>
 #include <moveit_msgs/PickupGoal.h>
 #include <moveit_msgs/PlaceGoal.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
 
 ArmInterface::ArmInterface():
     _cbq(),
@@ -458,12 +460,41 @@ void ArmInterface::push_button(const geometry_msgs::Pose &pose){
         return;
     }
 
-    // move to starting position
+    // publish a single frame with the button as its' origin
+    tf::TransformBroadcaster tf_broadcaster;
+    tf::Transform obj_origin;
+    tf::StampedTransform obj_tf;
     
+    obj_origin.setOrigin(tf::Vector3(pose.position.x, pose.position.y, pose.position.z));
+    obj_origin.setRotation(tf::Quaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w));
+    tf_broadcaster.sendTransform(tf::StampedTransform(obj_origin, ros::Time::now(), "map", "button"));
+
+    // get transform for this frame
+    _tf_listener.lookupTransform("base_link", "button", ros::Time(0), obj_tf);
+
+    // find points relative to transforms
+    geometry_msgs::PoseStamped org_approch, org_click, tf_approch, tf_click;
+    org_approch.pose.position.x = 0.2;
+    org_approch.header.stamp = ros::Time(0);
+    org_approch.header.frame_id = "button";
+    org_click.pose.position.x = -0.005;
+    org_click.header.stamp = ros::Time(0);
+    org_click.header.frame_id = "button";
+
+    _tf_listener.transformPose("base_link", org_approch, tf_approch);
+    _tf_listener.transformPose("base_link", org_click, tf_click);
+
+    // plan to cartesian path, don't avoid colisions (to allow button press)
+    std::vector<geometry_msgs::Pose> points;
+    points.push_back(tf_approch.pose);
+    points.push_back(tf_click.pose);
+    points.push_back(org_approch.pose);
+
+    moveit_msgs::RobotTrajectory trajectory;
+    double fraction = _move_group->computeCartesianPath(points, 0.01, 0.0, trajectory, false);
 }
 
 ArmInterface::~ArmInterface()
 {
-    // TODO: bom 
     delete _move_group;
 }

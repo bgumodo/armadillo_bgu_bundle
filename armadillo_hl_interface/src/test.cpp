@@ -111,11 +111,18 @@ int main(int argc, char **argv){
 
     // l_si.speech_to_text(5, cb);
 
-    ROS_INFO("driving to door...");
-    l_di.drive_block("cofee_room_door");
-    ROS_INFO("going back...");
-    l_di.drive_block("table_room");
-    ROS_INFO("done!");
+    ROS_INFO("looking for button...");
+    geometry_msgs::Pose p;
+
+    if(oh.find_object(p, "can")){
+        ROS_INFO("found button, driving...");
+        l_di.drive_block(p, 1.0);
+        ROS_INFO("pushing...");
+        l_ai.push_button(p);
+        ROS_INFO("done!");
+    }
+    else
+        ROS_INFO("can't find object!");
 
     ros::spin();
     return 0;
