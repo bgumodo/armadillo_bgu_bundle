@@ -12,15 +12,20 @@
 class ObjectHandler{
     private:
         ros::NodeHandle _nh;
-        ros::ServiceClient _find_object;
+        ros::ServiceClient _update_collision;
         moveit::planning_interface::PlanningSceneInterface _ps_interface;
+        ros::Duration _w;
 
+        // new object identification
+        ros::ServiceClient _find_object;
+        ros::Subscriber _result_subscriber;
+
+        void set_uc(bool val); // set state of update_collision_service
         // bool get_orientation_from_wall(geometry_msgs::Quaternion &orientation, const geometry_msgs::Pose &pose, double w=STD_OBJ_W, double h=STD_OBJ_H); // returns wall oreintation at object position pose
 
     public:
         ObjectHandler();
 
-        bool find_object(geometry_msgs::Pose &target, const std::string &name, int h, int s, int v, int tolerance);
         bool find_object(geometry_msgs::Pose &target, const std::string &name);
 
         ~ObjectHandler();

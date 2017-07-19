@@ -111,18 +111,24 @@ int main(int argc, char **argv){
 
     // l_si.speech_to_text(5, cb);
 
-    ROS_INFO("looking for button...");
-    geometry_msgs::Pose p;
+    // ROS_INFO("driving to door...");
+    // l_di.drive_block("coffee_room_door");
+    // ROS_INFO("driving back...");
+    // l_di.drive_block("table_room");
+    // ROS_INFO("done!");
 
-    if(oh.find_object(p, "can")){
-        ROS_INFO("found button, driving...");
-        l_di.drive_block(p, 1.0);
-        ROS_INFO("pushing...");
-        l_ai.push_button(p);
-        ROS_INFO("done!");
-    }
-    else
-        ROS_INFO("can't find object!");
+    geometry_msgs::Pose p;
+    // while(ros::ok()){
+        if(oh.find_object(p, "can")){
+            // l_ai.move_block("pre_grasp1");
+            // ros::Duration(2.0).sleep();
+            ROS_INFO("found button, pushing...");
+            l_ai.push_button(p);
+            ROS_INFO("done!");
+        }
+        else
+            ROS_INFO("can't find object!");
+    // }
 
     ros::spin();
     return 0;

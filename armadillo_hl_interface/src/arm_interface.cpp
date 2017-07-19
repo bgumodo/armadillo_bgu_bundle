@@ -28,6 +28,7 @@ ArmInterface::ArmInterface():
     _nh.setCallbackQueue(&_cbq);
     moveit::planning_interface::MoveGroup::Options opt("arm", "robot_description", _nh);
     _move_group = new moveit::planning_interface::MoveGroup(opt);
+    _move_group->setPoseReferenceFrame("base_link");
     boost::thread server_thread(&ArmInterface::spinner_thread, this);
 
     // init gripper client
@@ -463,21 +464,29 @@ void ArmInterface::push_button(const geometry_msgs::Pose &pose){
     // publish a single frame with the button as its' origin
     tf::TransformBroadcaster tf_broadcaster;
     tf::Transform obj_origin;
-    tf::StampedTransform obj_tf;
+    // tf::StampedTransform obj_tf;
     
     obj_origin.setOrigin(tf::Vector3(pose.position.x, pose.position.y, pose.position.z));
     obj_origin.setRotation(tf::Quaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w));
-    tf_broadcaster.sendTransform(tf::StampedTransform(obj_origin, ros::Time::now(), "map", "button"));
+    // while(ros::ok()){
+        tf_broadcaster.sendTransform(tf::StampedTransform(obj_origin, ros::Time::now(), "map", "button"));
+        // ros::Duration(0.1).sleep();
+    // }
 
     // get transform for this frame
-    _tf_listener.lookupTransform("base_link", "button", ros::Time(0), obj_tf);
+    _tf_listener.waitForTransform("base_link", "button", ros::Time(0), ros::Duration(2.0));
+    // _tf_listener.lookupTransform("base_link", "button", ros::Time(0), obj_tf);
 
     // find points relative to transforms
     geometry_msgs::PoseStamped org_approch, org_click, tf_approch, tf_click;
-    org_approch.pose.position.x = 0.2;
+
+    org_approch.pose.position.x = 0.3;
+    org_approch.pose.orientation.z = 1.0;
     org_approch.header.stamp = ros::Time(0);
     org_approch.header.frame_id = "button";
-    org_click.pose.position.x = -0.005;
+
+    org_click.pose.position.x = -0.1;
+    org_click.pose.orientation.z = 1.0;
     org_click.header.stamp = ros::Time(0);
     org_click.header.frame_id = "button";
 
@@ -488,10 +497,17 @@ void ArmInterface::push_button(const geometry_msgs::Pose &pose){
     std::vector<geometry_msgs::Pose> points;
     points.push_back(tf_approch.pose);
     points.push_back(tf_click.pose);
-    points.push_back(org_approch.pose);
+    points.push_back(tf_approch.pose);
 
     moveit_msgs::RobotTrajectory trajectory;
     double fraction = _move_group->computeCartesianPath(points, 0.01, 0.0, trajectory, false);
+    if(fraction >= 0){
+        close_gripper_block();
+        moveit::planning_interface::MoveGroup::Plan plan;
+        plan.trajectory_ = trajectory;
+        _move_group->setStartStateToCurrentState();
+        _move_group->execute(plan);
+    }
 }
 
 ArmInterface::~ArmInterface()

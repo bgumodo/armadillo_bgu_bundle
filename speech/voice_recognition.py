@@ -85,7 +85,7 @@ class SpeechDetector:
         filename = 'output_'+str(int(time.time()))
         temp_filename = filename + '_temp.wav'
         # writes data to WAV file
-        data = ''.join(data)
+        data = b''.join(data)
         wf = wave.open(temp_filename, 'wb')
         wf.setnchannels(1)
         wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
@@ -120,10 +120,10 @@ class SpeechDetector:
 
         audio2send = []
         cur_data = ''  # current chunk of audio data
-        rel = self.RECORD_RATE/self.CHUNK
+        rel = self.RECORD_RATE//self.CHUNK
         slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
         #Prepend audio from 0.5 seconds before noise was detected
-        prev_audio = deque(maxlen=self.PREV_AUDIO * rel)
+        prev_audio = deque(maxlen=int(self.PREV_AUDIO * rel))
         started = False
 
         bing = BingSpeechAPI()

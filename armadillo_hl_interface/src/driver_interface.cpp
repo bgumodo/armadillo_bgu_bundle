@@ -127,10 +127,10 @@ void DriverInterface::import_dest_map(const std::string filename){
     coffee_room_door.position.x = -9.0;
     coffee_room_door.position.y = 0.0;
     coffee_room_door.position.z = 0.0;
-    coffee_room_door.orientation.x = ori.x();
-    coffee_room_door.orientation.y = ori.y();
-    coffee_room_door.orientation.z = ori.z();
-    coffee_room_door.orientation.w = ori.w();
+    coffee_room_door.orientation.x = 0.0;
+    coffee_room_door.orientation.y = 0.0;
+    coffee_room_door.orientation.z = 0.722;
+    coffee_room_door.orientation.w = 0.692;
 
     coffee_room.position.x = -9.0;
     coffee_room.position.y = 6.5;
@@ -141,7 +141,7 @@ void DriverInterface::import_dest_map(const std::string filename){
     coffee_room.orientation.w = ori.w();
 
     _dest_map.insert(dest_dict_item("table_room", table_room));
-    _dest_map.insert(dest_dict_item("cofee_room_door", coffee_room_door));
+    _dest_map.insert(dest_dict_item("coffee_room_door", coffee_room_door));
     _dest_map.insert(dest_dict_item("coffee_room", coffee_room));
 }
 
@@ -219,11 +219,13 @@ bool DriverInterface::build_digoal(DIGoal &target, geometry_msgs::Pose &object, 
 
     // if needed, get robot's new pose in radius from goal
     geometry_msgs::Pose dest;
-    if(radius)
+    if(radius > 0){
         if(!get_best_pose_in_rad(dest, robot, object, radius)) // get new goal on radius
             return false; // return false if no reachable goal on radius
-    else
-        dest = object; // if no radius is given, just use original position
+    }
+    else{ // if no radius is given, just use original position
+        dest = object;
+    }
 
     // build goal and return
     target.target_pose.header.frame_id = "map";
@@ -341,11 +343,11 @@ bool DriverInterface::drive_block(const std::string &destination){
 		ROS_ERROR("DriverInterface couldn't find destination!");
        return false;
 	}
-	 
+	
 	geometry_msgs::Pose obj = pose_iter->second;
+
 	DIGoal goal;
     build_digoal(goal, obj, 0);
-    
     _mb_client.sendGoalAndWait(goal);
 
 	return _mb_client.getState() == GoalState::SUCCEEDED;
