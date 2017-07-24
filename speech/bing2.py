@@ -981,7 +981,7 @@ class Recognizer(AudioSource):
 
         # return results
         if show_all: return result
-        if "RecognitionStatus" not in result or result["RecognitionStatus"] != "Success" or "DisplayText" not in result: raise UnknownValueError()
+        if "RecognitionStatus" not in result or result["RecognitionStatus"] != "Success" or "DisplayText" not in result: return '<Unrecognized speech>'
         return result["DisplayText"]
 
     def recognize_houndify(self, audio_data, client_id, client_key, show_all=False):

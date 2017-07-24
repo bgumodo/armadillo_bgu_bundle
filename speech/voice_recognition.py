@@ -12,7 +12,8 @@ from collections import deque
 import time
 import math
 
-from bing import BingSpeechAPI
+#from bing import BingSpeechAPI
+import bing2
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
 
@@ -126,7 +127,7 @@ class SpeechDetector:
         prev_audio = deque(maxlen=int(self.PREV_AUDIO * rel))
         started = False
 
-        bing = BingSpeechAPI()
+        #bing = BingSpeechAPI()
 
         text = None
         while text is None:
@@ -148,9 +149,11 @@ class SpeechDetector:
                 wave_file.close()
 
                 try:
-                    text = bing.recognize(speech, language='en-US')
-                    text = text.encode('utf-8')
-                    rospy.loginfo('STT:{}'.format(text))
+                    #text = bing.recognize(speech, language='en-US')
+                    text = bing2.recognize(filename)
+                    #text = text.encode('utf-8')
+                    rospy.loginfo('STT:')
+                    rospy.loginfo(text)
                     self.pub.publish(String(text))
 
                 except ValueError:
@@ -162,7 +165,7 @@ class SpeechDetector:
                 # Reset all
                 started = False
                 slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
-                prev_audio = deque(maxlen=0.5 * rel)
+                prev_audio = deque(maxlen=int(0.5 * rel))
                 audio2send = []
                 #rospy.loginfo("Listening ...")
 

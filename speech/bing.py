@@ -107,8 +107,8 @@ class BingSpeechAPI:
         params = {
             "version": "3.0",
             "requestid": uuid.uuid4(),
-            #"appID": "D4D52672-91D7-4C74-8AD8-42B1D98141A5",
-            "appID": "08c46c16-949a-485a-b374-acc070f6f46d",
+            "appID": "D4D52672-91D7-4C74-8AD8-42B1D98141A5",
+            #"appID": "08c46c16-949a-485a-b374-acc070f6f46d",
             "format": "json",
             "locale": language,
             "device.os": "wp7",
