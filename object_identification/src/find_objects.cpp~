@@ -29,6 +29,7 @@ using namespace cv;
 #include "opencv2/highgui/highgui_c.h"
 #endif
 #include "detector.h"
+#include <hsv2rgb.h>
 #define OBJ_POS_PATH  "/home/juvy/catkin_ws/src/armadillo_bgu_bundle/object_identification/src/"
 
 ros::NodeHandle *n;
@@ -55,9 +56,14 @@ image_transport::Publisher object_image_pub;
 image_transport::Publisher bw_image_pub;
 ros::Publisher cmd_vel_pub_;
 
-int minH, maxH;
-int minS, maxS;
-int minV, maxV;
+double minH, maxH;
+double minS, maxS;
+double minV, maxV;
+
+int minR, maxR;
+int minG, maxG;
+int minB, maxB;
+
 std::string obj_name;
 boost::atomic<bool> working;
 
@@ -330,13 +336,9 @@ bool find_object(Mat input, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudp, Poin
 int ifThatColourIsThere(Mat input, labeld_squares* detections, int detect_count) {
 	int found_idx = -1;	
 	int count = 0;	
-	for (int i = 0; i < detect_count; ++i) {	
-		if ((strcmp("apple", detections[i].label) == 0 || strcmp("cup", detections[i].label) == 0)  && detections[i].prob > 0.2) 
-		{			 
-			std::cout << "\nFound "<<detections[i].label << " with prob "<<detections[i].prob * 100 << "\n";			
-			std::cout << detections[i].top  << " " << detections[i].bot << " " << detections[i].left << " " <<  detections[i].right << " " <<
-						(int)(detections[i].top + detections[i].bot)/2 << " " << (int)(detections[i].left + detections[i].right)/2 << "\n";
-	
+	for (int i = 0; i < detect_count; ++i) 
+	{	
+		if ( strcmp( obj_name.c_str(), detections[i].label) == 0 && detections[i].prob > 0.2) {
 			int count_temp = 0;
 			int found_idx_temp = -1;
 			int t = detections[i].top;
@@ -355,9 +357,9 @@ int ifThatColourIsThere(Mat input, labeld_squares* detections, int detect_count)
 				int xr = input.at<cv::Vec3b>(cor_y, cor_x)[2];
 				
 				/* 
-				 * Hard coded for red colour, for some other colour we need to write HSV2RGB converter to use upper and lower limits accordingly.
-				 **/ 
-				if ( (xb<80 && xg<80 && xr>130) || (xb<10 && xg<10 && xr>50))
+				 * Hard coded for red colour, for some other colour we need to write HSV2RGB converter to use upper and lower limits accordingly. **/ 
+				// if ( (xb<80 && xg<80 && xr>130) || (xb<10 && xg<10 && xr>50))
+				if ( (xb < maxB && xg < maxG && xr > maxR) || (xb < minB && xg < minG && xr > minR))
 					count_temp++;											
 				
 				circle( input, cv::Point(cor_x, cor_y), 2, Scalar(0,0,255), -1, 8, 0 ); 		    					
@@ -372,12 +374,12 @@ int ifThatColourIsThere(Mat input, labeld_squares* detections, int detect_count)
 				int xr = input.at<cv::Vec3b>(cor_y, cor_x)[2];
 				
 				/* 
-				 * Hard coded for red colour, for some other colour we need to write HSV2RGB converter to use upper and lower limits accordingly.
-				 **/ 
-				if ( (xb<80 && xg<80 && xr>130) || (xb<10 && xg<10 && xr>50))
+				 * Hard coded for red colour, for some other colour we need to write HSV2RGB converter to use upper and lower limits accordingly. **/ 
+				// if ( (xb<80 && xg<80 && xr>130) || (xb<10 && xg<10 && xr>50))
+				if ( (xb < maxB && xg < maxG && xr > maxR) || (xb < minB && xg < minG && xr > minR))
 					count_temp++;
 				
-				circle( input, cv::Point(cor_x, cor_y), 2, Scalar(0,0,255), -1, 8, 0 ); 
+				circle( input, cv::Point(cor_x, cor_y), 2, Scalar(0, 0, 255), -1, 8, 0 ); 
 			}				
 			
 			if (count < count_temp) {
@@ -411,7 +413,17 @@ bool trigger_search(object_identification::find_obj::Request &req, object_identi
 		minS	=	req.s - req.tolerance, 	maxS	=	req.s + req.tolerance;
 		minV	=	req.v - req.tolerance, 	maxV	=	req.v + req.tolerance;
 		
-		/* hard coded in respect of a 'CUP' */
+		// min values of rgb
+		HSV data = HSV(minH, minS, minV);
+		RGB value = HSVToRGB(data);
+		minR = value.R; minG = value.G; minB = value.B;
+		
+		// max values of rgb
+		data = HSV(maxH, maxS, maxV);
+		value = HSVToRGB(data);
+		minR = value.R; minG = value.G; minB = value.B;
+				
+		/* hard coded in respect of a 'CUP', and similar shapes. */
 		minA	=	100,					maxA	=	50000; 	
 		
 		obj_name = req.name;

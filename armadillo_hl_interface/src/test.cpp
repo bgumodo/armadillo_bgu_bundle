@@ -46,7 +46,10 @@ int drive(){
 }
 
 void cb(bool success, std::string text){
-    ROS_INFO("text");
+    if(success)
+        ROS_INFO_STREAM("I got: " << text);
+    else
+        ROS_INFO("got nothing!");
 }
 
 int main(int argc, char **argv){
@@ -69,7 +72,7 @@ int main(int argc, char **argv){
     ai = &l_ai;
     si = &l_si;
 
-    ObjectHandler oh;
+    // ObjectHandler oh;
     // some time to setup eveything
     ros::Duration w(2);
     w.sleep();
@@ -109,25 +112,26 @@ int main(int argc, char **argv){
     // if(fsm.run())
     //     ROS_INFO("Success!");
 
-    // l_si.speech_to_text(5, cb);
-
+    ROS_INFO("listening...");
+    l_si.speech_to_text(10, cb);
+    
     // ROS_INFO("driving to door...");
     // l_di.drive_block("coffee_room_door");
     // ROS_INFO("driving back...");
     // l_di.drive_block("table_room");
     // ROS_INFO("done!");
 
-    geometry_msgs::Pose p;
+    // geometry_msgs::Pose p;
     // while(ros::ok()){
-        if(oh.find_object(p, "can")){
-            // l_ai.move_block("pre_grasp1");
-            // ros::Duration(2.0).sleep();
-            ROS_INFO("found button, pushing...");
-            l_ai.push_button(p);
-            ROS_INFO("done!");
-        }
-        else
-            ROS_INFO("can't find object!");
+        // if(oh.find_object(p, "can")){
+        //     // l_ai.move_block("pre_grasp1");
+        //     // ros::Duration(2.0).sleep();
+        //     ROS_INFO("found button, pushing...");
+        //     l_ai.push_button(p);
+        //     ROS_INFO("done!");
+        // }
+        // else
+        //     ROS_INFO("can't find object!");
     // }
 
     ros::spin();

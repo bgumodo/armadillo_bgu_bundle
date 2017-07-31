@@ -12,7 +12,8 @@ from collections import deque
 import time
 import math
 
-from bing import BingSpeechAPI
+#from bing import BingSpeechAPI
+import bing2
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
 
@@ -85,7 +86,7 @@ class SpeechDetector:
         filename = 'output_'+str(int(time.time()))
         temp_filename = filename + '_temp.wav'
         # writes data to WAV file
-        data = ''.join(data)
+        data = b''.join(data)
         wf = wave.open(temp_filename, 'wb')
         wf.setnchannels(1)
         wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
@@ -120,13 +121,13 @@ class SpeechDetector:
 
         audio2send = []
         cur_data = ''  # current chunk of audio data
-        rel = self.RECORD_RATE/self.CHUNK
+        rel = self.RECORD_RATE//self.CHUNK
         slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
         #Prepend audio from 0.5 seconds before noise was detected
-        prev_audio = deque(maxlen=self.PREV_AUDIO * rel)
+        prev_audio = deque(maxlen=int(self.PREV_AUDIO * rel))
         started = False
 
-        bing = BingSpeechAPI()
+        #bing = BingSpeechAPI()
 
         text = None
         while text is None:
@@ -148,9 +149,11 @@ class SpeechDetector:
                 wave_file.close()
 
                 try:
-                    text = bing.recognize(speech, language='en-US')
-                    text = text.encode('utf-8')
-                    rospy.loginfo('STT:{}'.format(text))
+                    #text = bing.recognize(speech, language='en-US')
+                    text = bing2.recognize(filename)
+                    #text = text.encode('utf-8')
+                    rospy.loginfo('STT:')
+                    rospy.loginfo(text)
                     self.pub.publish(String(text))
 
                 except ValueError:
@@ -162,7 +165,7 @@ class SpeechDetector:
                 # Reset all
                 started = False
                 slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
-                prev_audio = deque(maxlen=0.5 * rel)
+                prev_audio = deque(maxlen=int(0.5 * rel))
                 audio2send = []
                 #rospy.loginfo("Listening ...")
 
@@ -177,11 +180,13 @@ class SpeechDetector:
 def run_speech_to_text(ignore_me):
     sd = SpeechDetector()
     sd.run()
+    return True, "success"
 
 
 def run_text_to_speech(ignore_me):
     bing = BingSpeechAPI()
     bing.text_to_speech(text='Here is your coffee')
+    return True, "success"
 
 
 def main():

@@ -1,0 +1,41 @@
+#ifndef OBJECT_HANDLER_H_
+#define OBJECT_HANDLER_H_
+
+#define STD_OBJ_W 0.4
+#define STD_OBJ_H 0.4
+
+#include <ros/ros.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Quaternion.h>
+#include <shape_msgs/SolidPrimitive.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+
+class ObjectHandler{
+    private:
+        typedef struct props{
+            double h;
+            double s;
+            double v;
+            double tolerance;
+            shape_msgs::SolidPrimitive shape;
+        } props;
+        typedef std::pair<std::string, props> dict_item;
+
+        ros::NodeHandle _nh;
+        ros::ServiceClient _find_object;
+        moveit::planning_interface::PlanningSceneInterface _ps_interface;
+        std::map<std::string, props> _object_dict;
+
+        void build_object_dict();
+        bool get_orientation_from_wall(geometry_msgs::Quaternion &orientation, const geometry_msgs::Pose &pose, double w=STD_OBJ_W, double h=STD_OBJ_H); // returns wall oreintation at object position pose
+
+    public:
+        ObjectHandler();
+
+        bool find_object(geometry_msgs::Pose &target, const std::string &name, double h, double s, double v, double tolerance);
+        bool find_object(geometry_msgs::Pose &target, const std::string &name);
+
+        ~ObjectHandler();
+};
+
+#endif

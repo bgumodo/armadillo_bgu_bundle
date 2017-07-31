@@ -180,11 +180,13 @@ class SpeechDetector:
 def run_speech_to_text(ignore_me):
     sd = SpeechDetector()
     sd.run()
+    return True, "success"
 
 
 def run_text_to_speech(ignore_me):
     bing = BingSpeechAPI()
     bing.text_to_speech(text='Here is your coffee')
+    return True, "success"
 
 
 def main():

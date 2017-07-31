@@ -5,21 +5,25 @@
 #include <geometry_msgs/Quaternion.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <object_identification/find_obj.h>
-#include <object_identification/find_results.h>
+#include <std_srvs/SetBool.h>
 
 #include <armadillo_hl_interface/object_handler.h>
 
-#include <boost/shared_ptr.hpp>
-
 ObjectHandler::ObjectHandler():
     _nh(),
-    _find_object(_nh.serviceClient<object_identification::find_obj>("find_object")),
-    _ps_interface()
+    _update_collision(_nh.serviceClient<std_srvs::SetBool>("update_collision_objects")),
+    _ps_interface(),
+    _w(1.0)
 {
-    ROS_INFO("waiting for find_object service...");
-    _find_object.waitForExistence();
+    ROS_INFO("waiting for uc service...");
+    _update_collision.waitForExistence();
     ROS_INFO("object handler ready.");
+}
+
+void ObjectHandler::set_uc(bool val){
+    std_srvs::SetBool srv;
+    srv.request.data = val;
+    _update_collision.call(srv);
 }
 
 // TODO: complete this, check if I can get 2d pixek location of object
@@ -35,28 +39,30 @@ ObjectHandler::ObjectHandler():
     
 // }
 
-bool ObjectHandler::find_object(geometry_msgs::Pose &target, const std::string &name, int h, int s, int v, int tolerance){
-    // call service with given params
-    object_identification::find_obj srv;
-    srv.request.name = name;
-    srv.request.h = h;
-    srv.request.s = s;
-    srv.request.v = v;
-    srv.request.tolerance = tolerance;
-    _find_object.call(srv);
-    
-    // wait for answer
-    boost::shared_ptr<const object_identification::find_results> res = ros::topic::waitForMessage<object_identification::find_results>("find_results", ros::Duration(10.0));
-    if(!res || !res->success)
-        return false;
-    
-    target = res->target_pose;
-    return true;
-}
-
-// TODO: build dict and test
 bool ObjectHandler::find_object(geometry_msgs::Pose &target, const std::string &name){
-    
+    // set uc_service
+    set_uc(true);
+
+    // some time to update collision service
+    _w.sleep();
+
+    // get objects pose map
+    std::vector<std::string> ids;
+    ids.push_back(name);
+    std::map<std::string, geometry_msgs::Pose> poses = _ps_interface.getObjectPoses(ids);
+
+    // return false if map is empty
+    if(poses.empty())
+        return false;
+
+    // found a suitable object
+    target = poses[name];
+    // temp for button
+    target.orientation.x = 0;
+    target.orientation.y = 0;
+    target.orientation.z = 0;
+    target.orientation.w = 1;
+    set_uc(false);
     return true;
 }
 

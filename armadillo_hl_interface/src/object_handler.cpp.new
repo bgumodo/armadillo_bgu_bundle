@@ -1,0 +1,108 @@
+#include <ros/ros.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Quaternion.h>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <object_identification/find_obj.h>
+#include <object_identification/find_results.h>
+
+#include <armadillo_hl_interface/object_handler.h>
+
+#include <boost/shared_ptr.hpp>
+
+ObjectHandler::ObjectHandler():
+    _nh(),
+    _find_object(_nh.serviceClient<object_identification::find_obj>("find_object")),
+    _ps_interface(),
+    _object_dict()
+{
+    build_object_dict();
+    ROS_INFO("waiting for find_object service...");
+    _find_object.waitForExistence();
+    ROS_INFO("object handler ready.");
+}
+
+// TODO: replace with a file db
+void ObjectHandler::build_object_dict(){
+    // can
+    props can;
+    can.h = 25;
+    can.s = 230;
+    can.v = 230;
+    can.tolerance = 25;
+    can.shape.type = can.shape.CYLINDER;
+    can.shape.dimensions.resize(2);
+    can.shape.dimensions[0] = 0.17;
+    can.shape.dimensions[1] = 0.03;
+    _object_dict.insert(dict_item("can", can));
+
+    // button
+    props button;
+    button.h = 25;
+    button.s = 230;
+    button.v = 230;
+    button.tolerance = 25;
+    can.shape.type = can.shape.CYLINDER;
+    can.shape.dimensions.resize(2);
+    can.shape.dimensions[0] = 0.17;
+    can.shape.dimensions[1] = 0.03;
+    _object_dict.insert(dict_item("button", button));
+}
+
+// TODO: complete this, check if I can get 2d pixek location of object
+// asumming object is currently visible to kinect
+// bool ObjectHandler::get_orientation_from_wall(geometry_msgs::Quaternion &orientation, const geometry_msgs::Pose &pose, double w=STD_OBJ_W, double h=STD_OBJ_H){
+//     sensor_msgs::Image *img = ros::topic::waitForMessage<sensor_msgs::Image>("kinect2/qhd/image_depth_rect", ros::Duration(2.0));
+//     sensor_msgs::PointCloud2 *pcl = ros::topic::waitForMessage<sensor_msgs::Image>("kinect2/qhd/points", ros::Duration(2.0));
+
+//     if(!img || !pcl){
+//         ROS_ERROR("Can't get object orientation from wall: kinect2 is not available!");
+//         return false;
+//     }
+    
+// }
+
+bool ObjectHandler::find_object(geometry_msgs::Pose &target, const std::string &name, double h, double s, double v, double tolerance){
+    // call service with given params
+    object_identification::find_obj srv;
+    srv.request.name = name;
+    srv.request.h = h;
+    srv.request.s = s;
+    srv.request.v = v;
+    srv.request.tolerance = tolerance;
+    _find_object.call(srv);
+    
+    // wait for answer
+    boost::shared_ptr<const object_identification::find_results> res = ros::topic::waitForMessage<object_identification::find_results>("find_results", ros::Duration(10.0));
+    if(!res || !res->success)
+        return false;
+    
+    target = res->target_pose;
+    return true;
+}
+
+// TODO: build dict and test
+bool ObjectHandler::find_object(geometry_msgs::Pose &target, const std::string &name){
+    // check if item in dict
+    std::map<std::string, props>::iterator object_iter = _object_dict.find(name);
+	if(object_iter == _object_dict.end())
+	{
+		ROS_ERROR("ObjectHandler got an unkown object!");
+       return false;
+	}
+	
+    // find object and add to planning_scene_interface
+	props p = object_iter->second;
+    if(find_object(target, name, p.h, p.s, p.v, p.tolerance)){
+        // _ps_interface
+        return true;
+    }
+    return false;
+}
+
+ObjectHandler::~ObjectHandler(){
+    
+}
+
