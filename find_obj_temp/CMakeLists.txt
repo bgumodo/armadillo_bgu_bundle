@@ -4,6 +4,7 @@ project(find_obj_temp)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  cv_bridge
 )
 
 catkin_package(
