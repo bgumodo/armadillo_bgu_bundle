@@ -5,9 +5,12 @@
 #include <boost/shared_ptr.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
+#include <tf/transform_listener.h>
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
 
 ros::Publisher pub;
 
@@ -35,7 +38,46 @@ bool srv_trigger(object_identification::find_obj::Request &req, object_identific
 
     // find object in rgb image
     cv::Mat rgb_img = cv_bridge::toCvCopy(rgb_msg)->image;
-    cv::imshow("sample", rgb_img);
+
+    // process image
+    cv::GaussianBlur(rgb_img, rgb_img, cv::Size(5, 5), 1.0); // blur
+    cv::Mat hsv_img;
+    cv::cvtColor(rgb_img, hsv_img, CV_RGB2HSV); // move to hsv
+    int lower_arr[] = {120, 100, 100};
+    std::vector<int> lower(lower_arr, lower_arr+3);
+    int upper_arr[] = {255, 255, 255};
+    std::vector<int> upper(upper_arr, upper_arr+3);
+    cv::inRange(hsv_img, lower, upper, hsv_img); // filter just reds
+    cv::morphologyEx(hsv_img, hsv_img, CV_MOP_OPEN, cv::Mat::ones(5, 5, hsv_img.type())); // do some cleaning
+
+    // find mean
+    int mean_x=0, mean_y=0, sum=0;
+    for(int i=0; i<hsv_img.rows; i++){
+        for(int j=0; j<hsv_img.cols; j++){
+            if(hsv_img.at<unsigned char>(i, j)){
+                sum++;
+                mean_x += j;
+                mean_y += i;
+            }
+        }
+    }
+    mean_x /= sum;
+    mean_y /= sum;
+    
+    // // for debug
+    // cv::imshow("sample", hsv_img);
+    // cv::waitKey(0);
+
+    // get location from mean
+    pcl::PointCloud<pcl::PointXYZRGB> pcl_conv;
+    pcl::fromROSMsg(*pcl_msg, pcl_conv);
+    pcl::PointXYZRGB point = pcl_conv[(mean_y * pcl_conv.width) + mean_x];
+    
+    // convert to global position (relative to map)
+
+
+    ROS_INFO_STREAM("X img: " << mean_x << ", Y img: " << mean_y);
+    ROS_INFO_STREAM("X: " << point.x << ", Y: " << point.y);
 
     // publish location to topic and ps_interface
     std::string name = req.name;
