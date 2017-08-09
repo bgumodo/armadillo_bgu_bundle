@@ -1,32 +1,22 @@
 #ifndef OBJECT_HANDLER_H_
 #define OBJECT_HANDLER_H_
 
-#define STD_OBJ_W = 0.4;
-#define STD_OBJ_H = 0.4;
+// for temp mockup find-object node
+// TODO: add a non-blocking version
 
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
-#include <geometry_msgs/Quaternion.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 
 class ObjectHandler{
     private:
         ros::NodeHandle _nh;
-        ros::ServiceClient _update_collision;
-        moveit::planning_interface::PlanningSceneInterface _ps_interface;
-        ros::Duration _w;
-
-        // new object identification
-        ros::ServiceClient _find_object;
-        ros::Subscriber _result_subscriber;
-
-        void set_uc(bool val); // set state of update_collision_service
-        // bool get_orientation_from_wall(geometry_msgs::Quaternion &orientation, const geometry_msgs::Pose &pose, double w=STD_OBJ_W, double h=STD_OBJ_H); // returns wall oreintation at object position pose
+        ros::ServiceClient _find_obj;
+        ros::Subscriber _res_listener;
 
     public:
         ObjectHandler();
 
-        bool find_object(geometry_msgs::Pose &target, const std::string &name);
+        bool find_object_block(geometry_msgs::Pose &target, const std::string &name);
 
         ~ObjectHandler();
 };

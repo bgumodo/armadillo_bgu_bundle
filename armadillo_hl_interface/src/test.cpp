@@ -13,43 +13,44 @@ DriverInterface *di;
 TorsoInterface *ti;
 ArmInterface *ai;
 SpeechInterface *si;
+ObjectHandler *oh;
 
-int head(){
-    // head up
-    hi->move_head_block(1.0, 0.3, 0.3);
-    // head down
-    hi->move_head_block(1.0, 0.0, 0.0);
-    // head up
-    hi->move_head_block(1.0, 0.3, 0.3);
-    // head down
-    hi->move_head_block(1.0, 0.0, 0.0);
-    // next node
-    return 3;
+bool lookup_and_drive(std::string object){
+    move_head_block(-1.0, 0.0);
+    move_head_block(0.0, 0.0);
+    move_head_block(1.0, 0.0);
+    return false;
 }
 
-int torso(){
-    // torso up
-    ti->move_block(ti->MAX_HEIGHT);
-    // torso down
-    ti->move_block(ti->MIN_HEIGHT);
-    // next node
-    return 3;
-}
+bool run_script(){
+    // wait for a coffee request
+    std::string talk;
+    do{
+        ROS_INFO("listening...");
+        speech_to_text_block(10, talk);
+    } while(talk != "get me coffee")
+    
+    // drive to elevator door
+    if(!di->drive_block("coffee_room_door"))
+        return false;
 
-int drive(){
-    // driving 2m forward
-    di->drive_block(2.0, 0.0, 0.4);
-    // driving 2m backward
-    di->drive_block(2.0, 0.0, -0.4);
-    // returning 1 means end FSM with success
-    return 1;
-}
+    // find button and drive
+    if(!lookup_and_drive("can"))
+        return false;
 
-void cb(bool success, std::string text){
-    if(success)
-        ROS_INFO_STREAM("I got: " << text);
-    else
-        ROS_INFO("got nothing!");
+    // push button
+
+    // enter coffee room
+    
+    // ask for cofee
+
+    // find can
+
+    // pickup can
+
+    // drive back
+
+    return true;
 }
 
 int main(int argc, char **argv){
@@ -63,19 +64,26 @@ int main(int argc, char **argv){
     TorsoInterface l_ti;
     ArmInterface l_ai;
     SpeechInterface l_si;
+    ObjectHandler l_oh;
 
-    ROS_INFO("ready!\n");
     // make them global
     hi = &l_hi;
     di = &l_di;
     ti = &l_ti;
     ai = &l_ai;
     si = &l_si;
-
-    // ObjectHandler oh;
+    oh = &l_oh;
+    
     // some time to setup eveything
     ros::Duration w(2);
     w.sleep();
+
+    // start script
+    ROS_INFO("all ready! starting script...");
+    if(run_script())
+        ROS_INFO("success!");
+    else
+        ROS_INFO("fail!");
 
     // l_ai.move_block("pre_grasp3");
     // geometry_msgs::Pose p;
@@ -111,9 +119,6 @@ int main(int argc, char **argv){
     // // run FSM
     // if(fsm.run())
     //     ROS_INFO("Success!");
-
-    ROS_INFO("listening...");
-    l_si.speech_to_text(10, cb);
     
     // ROS_INFO("driving to door...");
     // l_di.drive_block("coffee_room_door");
@@ -123,15 +128,16 @@ int main(int argc, char **argv){
 
     // geometry_msgs::Pose p;
     // while(ros::ok()){
-        // if(oh.find_object(p, "can")){
-        //     // l_ai.move_block("pre_grasp1");
-        //     // ros::Duration(2.0).sleep();
-        //     ROS_INFO("found button, pushing...");
-        //     l_ai.push_button(p);
-        //     ROS_INFO("done!");
-        // }
-        // else
-        //     ROS_INFO("can't find object!");
+    //     if(l_oh.find_object_block(p, "button")){
+    //     //     // l_ai.move_block("pre_grasp1");
+    //     //     // ros::Duration(2.0).sleep();
+    //         ROS_INFO("found button, pushing...");
+    //     //     l_ai.push_button(p);
+    //     //     ROS_INFO("done!");
+    //     }
+    //     else
+    //         ROS_INFO("can't find object!");
+    //     ros::Duration(5.0).sleep();
     // }
 
     ros::spin();
