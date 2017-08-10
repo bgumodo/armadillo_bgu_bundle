@@ -5,7 +5,7 @@
 
     <!--<node name="find_object_node" pkg="robotican_common" type="find_objects_node" output="screen"/>-->
 
-    <node name="speech_node" pkg="speech_api" type="src/start_node.py" output="screen"/>
+    <!--<node name="start_node" pkg="speech_api" type="start_node.py" output="screen"/>-->
 
     <node name="find_obj_temp" pkg="find_obj_temp" type="find_obj_temp" output="screen"/>
 

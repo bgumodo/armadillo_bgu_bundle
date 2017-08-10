@@ -113,32 +113,30 @@ DriverInterface::DriverInterface():
 void DriverInterface::import_dest_map(const std::string filename){
 	// TODO: implement not hard-coded
     geometry_msgs::Pose table_room, coffee_room_door, coffee_room;
-    tf::Quaternion ori;
-    ori.setRPY(0.0, 0.0, 0.0);
 
     table_room.position.x = -0.5;
     table_room.position.y = -0.4;
     table_room.position.z = 0.0;
-    table_room.orientation.x = ori.x();
-    table_room.orientation.y = ori.y();
-    table_room.orientation.z = ori.z();
-    table_room.orientation.w = ori.w();
+    table_room.orientation.x = 0.0;
+    table_room.orientation.y = 0.0;
+    table_room.orientation.z = 0.0;
+    table_room.orientation.w = 1.0;
 
-    coffee_room_door.position.x = -9.0;
-    coffee_room_door.position.y = 0.0;
+    coffee_room_door.position.x = -9.177;
+    coffee_room_door.position.y = 2.773;
     coffee_room_door.position.z = 0.0;
     coffee_room_door.orientation.x = 0.0;
     coffee_room_door.orientation.y = 0.0;
-    coffee_room_door.orientation.z = 0.722;
-    coffee_room_door.orientation.w = 0.692;
+    coffee_room_door.orientation.z = 0.7;
+    coffee_room_door.orientation.w = 0.7;
 
-    coffee_room.position.x = -9.0;
-    coffee_room.position.y = 6.5;
+    coffee_room.position.x = -9.387;
+    coffee_room.position.y = 6.897;
     coffee_room.position.z = 0.0;
-    coffee_room.orientation.x = ori.x();
-    coffee_room.orientation.y = ori.y();
-    coffee_room.orientation.z = ori.z();
-    coffee_room.orientation.w = ori.w();
+    coffee_room.orientation.x = 0.0;
+    coffee_room.orientation.y = 0.0;
+    coffee_room.orientation.z = 1.0;
+    coffee_room.orientation.w = 0.0;
 
     _dest_map.insert(dest_dict_item("table_room", table_room));
     _dest_map.insert(dest_dict_item("coffee_room_door", coffee_room_door));

@@ -1,5 +1,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
+#include <gazebo_msgs/SpawnModel.h>
+#include <gazebo_msgs/DeleteModel.h>
 #include <armadillo_hl_interface/head_interface.h>
 #include <armadillo_hl_interface/driver_interface.h>
 #include <armadillo_hl_interface/torso_interface.h>
@@ -8,6 +10,13 @@
 #include <armadillo_hl_interface/object_handler.h>
 #include <armadillo_hl_interface/fsm.h>
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
+ros::ServiceClient add_obj;
+ros::ServiceClient rem_obj;
+
 HeadInterface *hi;
 DriverInterface *di;
 TorsoInterface *ti;
@@ -15,40 +24,111 @@ ArmInterface *ai;
 SpeechInterface *si;
 ObjectHandler *oh;
 
-bool lookup_and_drive(std::string object){
-    move_head_block(-1.0, 0.0);
-    move_head_block(0.0, 0.0);
-    move_head_block(1.0, 0.0);
+void add_model(const std::string &name, const geometry_msgs::Pose pose, const std::string xml_path){
+    gazebo_msgs::SpawnModel srv;
+    srv.request.model_name = name;
+
+    std::ifstream file(xml_path.c_str());
+    std::stringstream sstr;
+    while(file >> sstr.rdbuf());
+
+    srv.request.model_xml = sstr.str();
+    srv.request.initial_pose = pose;
+    srv.request.reference_frame = "map";
+    add_obj.call(srv);
+}
+
+void remove_object(const std::string &name){
+    gazebo_msgs::DeleteModel srv;
+    srv.request.model_name = name;
+    rem_obj.call(srv);
+}
+
+void open_door(){
+    remove_object("unit_box_2");
+    ros::Duration(1.0);
+}
+
+void place_coffee(){
+    geometry_msgs::Pose pose;
+    pose.position.x = -10.729576;
+    pose.position.y = 7.307851;
+    pose.position.z = 0.735001;
+    pose.orientation.x = 0.0;
+    pose.orientation.y = 0.0;
+    pose.orientation.z = 0.0;
+    pose.orientation.w = 1.0;
+    add_model("coffee", pose, "/home/bgumodo2/catkin_ws/src/robotican/robotican_common/models/coke_can_slim/coke_can_slim.sdf");
+    ros::Duration(1.0);
+}
+
+bool lookup(geometry_msgs::Pose &pose, std::string object){
+    hi->move_head_block(1.0, 0.0);
+    ros::Duration(1.0).sleep(); // wait for head to stop moving
+    if(oh->find_object_block(pose, "button"))
+        return true;
+
+    hi->move_head_block(0.0, 0.0);
+    ros::Duration(1.0).sleep(); // wait for head to stop moving
+    if(oh->find_object_block(pose, "button"))
+        return true;
+
+    hi->move_head_block(-1.0, 0.0);
+    ros::Duration(1.0).sleep(); // wait for head to stop moving
+    if(oh->find_object_block(pose, "button"))
+        return true;
+
     return false;
 }
 
 bool run_script(){
     // wait for a coffee request
-    std::string talk;
-    do{
-        ROS_INFO("listening...");
-        speech_to_text_block(10, talk);
-    } while(talk != "get me coffee")
+    // std::string talk;
+    // do{
+    //     ROS_INFO("listening...");
+    //     si->speech_to_text_block(10, talk);
+    //     ROS_INFO_STREAM("got: '" << talk << "'");
+    // } while(talk != "Get me coffee.");
     
-    // drive to elevator door
-    if(!di->drive_block("coffee_room_door"))
-        return false;
+    // // drive to elevator door
+    // if(!di->drive_block("coffee_room_door"))
+    //     return false;
 
-    // find button and drive
-    if(!lookup_and_drive("can"))
-        return false;
+    // // find button
+    geometry_msgs::Pose p;
+    // if(!lookup(p, "button"))
+    //     return false;
+    // hi->move_head(0.0, 0.0); // head back to place
 
-    // push button
+    // // drive to button
+    // di->drive_block(p, 0.6);
+
+    // // TODO: add option to move infront of the button
+    // // push button
+    // ai->push_button(p);
+    // ai->move("pre_grasp1"); // move arm back to driving position
+    open_door();
 
     // enter coffee room
+    di->drive_block("coffee_room");
     
-    // ask for cofee
+    // ask for coffee
+    // TODO: implement!
+    place_coffee();
 
     // find can
+    if(!oh->find_object_block(p, "can"))
+        return false;
+    hi->move_head(0.0, 0.0); // head back to place
+
+    // drive to can
+    di->drive_block(p, 0.55);
 
     // pickup can
+    ai->pickup_block("can", p);
 
     // drive back
+    di->drive_block("table_room");
 
     return true;
 }
@@ -57,6 +137,13 @@ int main(int argc, char **argv){
     // init node
     ros::init(argc, argv, "test_node");
     ros::NodeHandle nh;
+
+    // used to add and remove parts of the simulation
+    rem_obj = nh.serviceClient<gazebo_msgs::DeleteModel>("gazebo/delete_model");
+    add_obj = nh.serviceClient<gazebo_msgs::SpawnModel>("gazebo/spawn_gazebo_model");
+    while(!rem_obj.waitForExistence(ros::Duration(5.0)) || !add_obj.waitForExistence(ros::Duration(5.0))){
+        ROS_INFO("waiting for gazebo services...");
+    }
 
     // init interfaces
     HeadInterface l_hi;
@@ -75,7 +162,8 @@ int main(int argc, char **argv){
     oh = &l_oh;
     
     // some time to setup eveything
-    ros::Duration w(2);
+    // NOW START SPEECH NODE WITH PYTHON!
+    ros::Duration w(6.0);
     w.sleep();
 
     // start script
