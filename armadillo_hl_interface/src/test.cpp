@@ -122,10 +122,12 @@ bool run_script(){
     hi->move_head(0.0, 0.0); // head back to place
 
     // drive to can
+    ai->move("pre_grasp1");
     di->drive_block(p, 0.55);
 
     // pickup can
-    ai->pickup_block("can", p);
+    if(!ai->pickup_block("can", p))
+        return false;
 
     // drive back
     di->drive_block("table_room");
@@ -168,6 +170,7 @@ int main(int argc, char **argv){
 
     // start script
     ROS_INFO("all ready! starting script...");
+
     if(run_script())
         ROS_INFO("success!");
     else

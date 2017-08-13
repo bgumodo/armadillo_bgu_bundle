@@ -51,12 +51,12 @@ void build_obj_dict(){
     
     // can
     objrec can;
-    can.h_low = 60;
-    can.s_low = 50;
-    can.v_low = 50;
-    can.h_high = 150;
-    can.s_high = 150;
-    can.v_high = 150;
+    can.h_low = 100;
+    can.s_low = 110;
+    can.v_low = 40;
+    can.h_high = 180;
+    can.s_high = 200;
+    can.v_high = 255;
     can.shape.type = button.shape.CYLINDER;
     can.shape.dimensions.resize(2);
     can.shape.dimensions[0] = 0.17;
@@ -109,9 +109,9 @@ void find(std::string name, objrec rec){
         }
     }
 
-    // for debug
-    cv::imshow("sample", hsv_img);
-    cv::waitKey(0);
+    // // for debug
+    // cv::imshow("sample", hsv_img);
+    // cv::waitKey(0);
 
     if(sum <= 10){
         fail();
