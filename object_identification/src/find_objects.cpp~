@@ -409,9 +409,9 @@ bool trigger_search(object_identification::find_obj::Request &req, object_identi
 {
 	if(!working) {
 		working = true;
-		minH	=	req.h - req.tolerance,	maxH	=	req.h + req.tolerance;
-		minS	=	req.s - req.tolerance, 	maxS	=	req.s + req.tolerance;
-		minV	=	req.v - req.tolerance, 	maxV	=	req.v + req.tolerance;
+		minH	=	req.h_min;	maxH	=	req.h_max;
+		minS	=	req.s_min; 	maxS	=	req.s_max;
+		minV	=	req.v_min; 	maxV	=	req.v_max;
 		
 		// min values of rgb
 		HSV data = HSV(minH, minS, minV);

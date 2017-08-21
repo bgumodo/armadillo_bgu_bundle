@@ -292,6 +292,11 @@ moveit_msgs::PickupGoal ArmInterface::build_pickup_goal(const std::string &objec
     goal.end_effector = "eef";
     goal.allow_gripper_support_collision = false;
     goal.minimize_object_distance = true;
+    // goal.attached_object_touch_links.resize(4);
+    // goal.attached_object_touch_links[0] = "gripper_link";
+    // goal.attached_object_touch_links[1] = "wrist_link";
+    // goal.attached_object_touch_links[2] = "left_finger_link";
+    // goal.attached_object_touch_links[3] = "right_finger_link";
 
     // planning stuff
     goal.allowed_planning_time = 5.0;
@@ -332,7 +337,7 @@ moveit_msgs::PickupGoal ArmInterface::build_pickup_goal(const std::string &objec
     g.grasp_pose.pose.position.y = tf_pos.getY() + d_y;
     g.grasp_pose.pose.position.z = tf_pos.getZ();
 
-    double yaw = atan2(tf_pos.getY(),  tf_pos.getX());
+    double yaw = atan2(tf_pos.getY(), tf_pos.getX());
     tf_ori.setRPY(0.0, 0.0, yaw + d_Y);
     
     g.grasp_pose.pose.orientation.x = tf_ori.getX();
@@ -352,9 +357,12 @@ moveit_msgs::PickupGoal ArmInterface::build_pickup_goal(const std::string &objec
     g.post_grasp_retreat.min_distance = 0.1;
     g.post_grasp_retreat.desired_distance = 0.2;
 
+    g.allowed_touch_objects.resize(1);
+    g.allowed_touch_objects[0] = object;
     g.max_contact_force = 1.0;
 
     goal.possible_grasps.push_back(g);
+
     return goal;
 }
 

@@ -1,6 +1,11 @@
+uint8 HEAD_CAM=0
+uint8 ARM_CAM=1
+uint8 camera
 string name
-float64 h
-float64 s
-float64 v
-float64 tolerance
+float64 h_min
+float64 s_min
+float64 v_min
+float64 h_max
+float64 s_max
+float64 v_max
 ---

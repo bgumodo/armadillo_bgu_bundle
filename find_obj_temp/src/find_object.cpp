@@ -71,13 +71,29 @@ void fail(){
     res_pub.publish(res_msg);
 }
 
-void find(std::string name, objrec rec){
+void find(std::string name, objrec rec, const unsigned char camera){
+    std::string rgb_topic, pcl_topic, cam_frame;
+
+    // set cam topic and tf frame
+    switch(camera){
+        case object_identification::find_obj::Request::HEAD_CAM:
+            rgb_topic = "/kinect2/qhd/image_color";
+            pcl_topic = "/kinect2/qhd/points";
+            cam_frame = "kinect2_depth_optical_frame";
+            break;
+        case object_identification::find_obj::Request::ARM_CAM:
+            rgb_topic = "/softkinetic_camera/rgb/image_raw";
+            pcl_topic = "/softkinetic_camera/depth/points";
+            cam_frame = "softkinetic_camera_depth_optical_frame";
+            break;
+    }
+
     // get image and point-cloud
     ros::Duration d(10.0);
     
     // no message filter here, assuming robot dosn't move!
-    boost::shared_ptr<const sensor_msgs::Image> rgb_msg = ros::topic::waitForMessage<sensor_msgs::Image>("/kinect2/qhd/image_color", d);
-    boost::shared_ptr<const sensor_msgs::PointCloud2> pcl_msg = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/kinect2/qhd/points", d);
+    boost::shared_ptr<const sensor_msgs::Image> rgb_msg = ros::topic::waitForMessage<sensor_msgs::Image>(rgb_topic, d);
+    boost::shared_ptr<const sensor_msgs::PointCloud2> pcl_msg = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(pcl_topic, d);
     if(!rgb_msg || !pcl_msg){
         fail();
         return;
@@ -128,13 +144,13 @@ void find(std::string name, objrec rec){
     
     // convert to global position (relative to map)
     tf::TransformListener tf_listener;
-    if(!tf_listener.waitForTransform("map", "kinect2_depth_optical_frame", ros::Time(0), d)){
+    if(!tf_listener.waitForTransform("map", cam_frame, ros::Time(0), d)){
         fail();
         return;
     }
     
     tf::StampedTransform transform;
-    tf_listener.lookupTransform("map", "kinect2_depth_optical_frame", ros::Time(0), transform);
+    tf_listener.lookupTransform("map", cam_frame, ros::Time(0), transform);
     tf::Vector3 pose_vec(point.x, point.y, point.z);
     tf::Vector3 trans_vec = transform * pose_vec;
 
@@ -184,7 +200,7 @@ bool srv_trigger(object_identification::find_obj::Request &req, object_identific
 	objrec rec = obj_iter->second;
 
     // start working thread
-    boost::thread work_thread(find, name, rec);
+    boost::thread work_thread(find, name, rec, req.camera);
 
     return true;
 }

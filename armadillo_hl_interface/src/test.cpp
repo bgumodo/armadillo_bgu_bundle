@@ -58,7 +58,7 @@ void place_coffee(){
     pose.orientation.y = 0.0;
     pose.orientation.z = 0.0;
     pose.orientation.w = 1.0;
-    add_model("coffee", pose, "/home/bgumodo2/catkin_ws/src/robotican/robotican_common/models/coke_can_slim/coke_can_slim.sdf");
+    add_model("can", pose, "/home/bgumodo2/catkin_ws/src/robotican/robotican_common/models/coke_can_slim/coke_can_slim.sdf");
     ros::Duration(1.0);
 }
 
@@ -82,7 +82,7 @@ bool lookup(geometry_msgs::Pose &pose, std::string object){
 }
 
 bool run_script(){
-    // wait for a coffee request
+    // // wait for a coffee request
     // std::string talk;
     // do{
     //     ROS_INFO("listening...");
@@ -122,15 +122,24 @@ bool run_script(){
     hi->move_head(0.0, 0.0); // head back to place
 
     // drive to can
-    ai->move("pre_grasp1");
-    di->drive_block(p, 0.55);
+    ai->move("pre_grasp2");
+    hi->move_head(0.0, 0.3);
+    di->drive_block(p, 0.6);
+    ros::Duration(4.0).sleep();
 
-    // pickup can
-    if(!ai->pickup_block("can", p))
+    // look again to refine location (TODO: remove)
+    if(!oh->find_object_block(p, "can", ObjectHandler::ARM_CAM))
         return false;
 
-    // drive back
-    di->drive_block("table_room");
+    // pickup can
+    while(!ai->pickup_block("can", p) && ros::ok()){
+        ROS_INFO("failed.");
+        ros::Duration(4.0).sleep();
+        ROS_INFO("trying to grasp again...");
+    }
+
+    // // drive back
+    // di->drive_block("table_room");
 
     return true;
 }

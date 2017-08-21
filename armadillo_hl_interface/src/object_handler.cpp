@@ -16,10 +16,20 @@ ObjectHandler::ObjectHandler():
     ROS_INFO("temp object-handler ready.");
 }
 
-bool ObjectHandler::find_object_block(geometry_msgs::Pose &target, const std::string &name){
+bool ObjectHandler::find_object_block(geometry_msgs::Pose &target, const std::string &name, CamType camera){
     // call service with given params
     object_identification::find_obj srv;
     srv.request.name = name;
+
+    switch(camera){
+        case HEAD_CAM:
+            srv.request.camera = object_identification::find_obj::Request::HEAD_CAM;
+            break;
+        case ARM_CAM:
+            srv.request.camera = object_identification::find_obj::Request::ARM_CAM;
+            break;
+    }
+
     _find_obj.call(srv);
     
     // wait for answer

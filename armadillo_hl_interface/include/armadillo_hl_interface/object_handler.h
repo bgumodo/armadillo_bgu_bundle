@@ -14,9 +14,11 @@ class ObjectHandler{
         ros::Subscriber _res_listener;
 
     public:
+        enum CamType {HEAD_CAM, ARM_CAM};
+        
         ObjectHandler();
 
-        bool find_object_block(geometry_msgs::Pose &target, const std::string &name);
+        bool find_object_block(geometry_msgs::Pose &target, const std::string &name, CamType camera=HEAD_CAM);
 
         ~ObjectHandler();
 };
