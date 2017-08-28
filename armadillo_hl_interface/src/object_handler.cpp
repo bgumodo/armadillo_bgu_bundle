@@ -46,4 +46,3 @@ bool ObjectHandler::find_object_block(geometry_msgs::Pose &target, const std::st
 ObjectHandler::~ObjectHandler(){
     
 }
-

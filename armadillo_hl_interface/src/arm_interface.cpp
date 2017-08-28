@@ -325,7 +325,6 @@ moveit_msgs::PickupGoal ArmInterface::build_pickup_goal(const std::string &objec
     g.grasp_posture.points[0].effort[0] = DEFAULT_GRIPPER_FORCE;
 
     // position+orientation of end-effector during grasp
-    g.grasp_pose.header.frame_id = "base_link";
     tf::StampedTransform robot_tf;
     _tf_listener.lookupTransform("base_link", "map", ros::Time(0), robot_tf);
     
@@ -333,6 +332,7 @@ moveit_msgs::PickupGoal ArmInterface::build_pickup_goal(const std::string &objec
     tf::Vector3 tf_pos = robot_tf * v_pos;
     tf::Quaternion tf_ori;
     
+    g.grasp_pose.header.frame_id = "base_link";
     g.grasp_pose.pose.position.x = tf_pos.getX()-0.04 + d_x;
     g.grasp_pose.pose.position.y = tf_pos.getY() + d_y;
     g.grasp_pose.pose.position.z = tf_pos.getZ();
@@ -463,6 +463,7 @@ bool ArmInterface::place_block(const std::string object, const geometry_msgs::Po
     return _place_client.getState() == GoalState::SUCCEEDED;
 }
 
+// TODO: fix transform (no publish), improve path
 void ArmInterface::push_button(const geometry_msgs::Pose &pose){
     if(!_ready){
         ROS_ERROR("ArmInterface is not ready!");

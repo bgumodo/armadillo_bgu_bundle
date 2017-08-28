@@ -185,7 +185,7 @@ def run_speech_to_text(ignore_me):
 
 def run_text_to_speech(ignore_me):
     bing = BingSpeechAPI()
-    bing.text_to_speech(text='Here is your coffee')
+    bing.text_to_speech(text='Can I have some coffee?')
     return True, "success"
 
 

@@ -1,0 +1,7 @@
+# goal: text to be converted to speech
+string text
+---
+# result: success indicator
+bool success
+---
+# feedback: no feedback here...

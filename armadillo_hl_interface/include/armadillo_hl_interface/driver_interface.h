@@ -5,6 +5,7 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
 #include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <base_local_planner/costmap_model.h>
 #include <actionlib/server/simple_action_server.h>
@@ -51,6 +52,7 @@ class DriverInterface{
         MBClient _mb_client;
         SDClient _sd_client;
         tf::TransformListener _tf_listener;
+        tf::TransformBroadcaster _tf_broadcaster;
         costmap_2d::Costmap2DROS _cm_interface;
         base_local_planner::CostmapModel _cm_model;
         std::map<std::string, geometry_msgs::Pose> _dest_map;
@@ -61,10 +63,12 @@ class DriverInterface{
         bool pose_blocked(const geometry_msgs::Pose &point);
         // returns true if point1 is closer to base then point2
         static bool point_dist_comperator(const geometry_msgs::Pose &base, const geometry_msgs::Pose &point1, const geometry_msgs::Pose &point2);
+        // returns a new pose in a given radius and angle from a given pose
+        geometry_msgs::Pose get_position_from_radius_angle(const geometry_msgs::Pose &object, double radius, double angle);
         // returns closest available point in radius
         bool get_best_pose_in_rad(geometry_msgs::Pose &target, const geometry_msgs::Pose &robot, const geometry_msgs::Pose &object, double radius);
         // build DIGoal and handle radius
-        bool build_digoal(DIGoal &target, geometry_msgs::Pose &object, double radius);
+        bool build_digoal(DIGoal &target, geometry_msgs::Pose &object, double radius, double theta);
         // runs the simple-driver server on a seperate thread
         void start_sd_server();
         // load the destination dictionary
@@ -72,12 +76,16 @@ class DriverInterface{
 
 
     public:
+        const static double ANGLE_NEAREST = -1.0;
+        const static double ANGLE_FRONT = 0.0;
+        const static double ANGLE_BACK = M_PI;
+
         DriverInterface();
 
         // drive relative to map- using move_base
-        bool drive_block(geometry_msgs::Pose &pose, double radius=0);
-        void drive(geometry_msgs::Pose &object, double radius=0);
-        void drive(const CallbackBool callback, geometry_msgs::Pose &object, double radius=0);
+        bool drive_block(geometry_msgs::Pose &pose, double radius=0, double theta=ANGLE_NEAREST);
+        void drive(geometry_msgs::Pose &object, double radius=0, double theta=ANGLE_NEAREST);
+        void drive(const CallbackBool callback, geometry_msgs::Pose &object, double radius=0, double theta=ANGLE_NEAREST);
         
         // drive using premade dict
         bool drive_block(const std::string &destination);

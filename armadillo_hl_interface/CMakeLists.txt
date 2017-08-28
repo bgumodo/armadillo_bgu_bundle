@@ -21,7 +21,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_action_files(
   DIRECTORY action
-  FILES SimpleDriver.action Torso.action SpeechToText.action
+  FILES SimpleDriver.action Torso.action SpeechToText.action TextToSpeech.action
 )
 
 add_message_files()

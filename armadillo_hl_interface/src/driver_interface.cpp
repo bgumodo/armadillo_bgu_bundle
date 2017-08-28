@@ -11,6 +11,7 @@
 
 #include <move_base_msgs/MoveBaseAction.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <armadillo_hl_interface/SimpleDriverAction.h>
 #include <armadillo_hl_interface/SimpleDriverFeedback.h>
@@ -90,6 +91,7 @@ DriverInterface::DriverInterface():
     _mb_client("move_base", true),
     _sd_client("simple_driver", true),
     _tf_listener(),
+    _tf_broadcaster(),
     _cm_interface("global_costmap", _tf_listener),
     _cm_model(*_cm_interface.getCostmap()),
     _dest_map()
@@ -160,33 +162,46 @@ bool DriverInterface::point_dist_comperator(const geometry_msgs::Pose &base, con
     return d1 <= d2;
 }
 
+geometry_msgs::Pose DriverInterface::get_position_from_radius_angle(const geometry_msgs::Pose &object, double radius, double theta){
+    // build and broadcast object transformation
+    tf::Transform obj_tf;
+    obj_tf.setOrigin(tf::Vector3(object.position.x, object.position.y, object.position.z));
+    obj_tf.setRotation(tf::Quaternion(object.orientation.x, object.orientation.y, object.orientation.z, object.orientation.w));
+
+    double rel_x, rel_y, yaw;
+
+    rel_x = radius * cos(theta);
+    rel_y = radius * sin(theta);
+    tf::Vector3 pose_rel(rel_x, rel_y, 0.0);
+    tf::Vector3 pose_abs = obj_tf * pose_rel;
+
+    yaw = fmod(theta+M_PI, 2*M_PI);
+    tf::Quaternion ori_rel;
+    ori_rel.setRPY(0.0, 0.0, yaw);
+    tf::Quaternion ori_abs = obj_tf * ori_rel;
+
+    geometry_msgs::Pose n_pose;
+    n_pose.position.x = pose_abs.x();
+    n_pose.position.y = pose_abs.y();
+    n_pose.position.z = pose_abs.z();
+
+    n_pose.orientation.x = ori_abs.x();
+    n_pose.orientation.y = ori_abs.y();
+    n_pose.orientation.z = ori_abs.z();
+    n_pose.orientation.w = ori_abs.w();
+
+    return n_pose;
+}
+
 bool DriverInterface::get_best_pose_in_rad(geometry_msgs::Pose &target, const geometry_msgs::Pose &robot, const geometry_msgs::Pose &object, double radius){
     // create sampling points
     std::vector<geometry_msgs::Pose> poses;
-    double theta, rel_x, rel_y, yaw;
 
-    double theta_unit = (2 * M_PI)/NUM_OF_SAMPLING_POINTS;
-    for(int i=0; i<NUM_OF_SAMPLING_POINTS; i++){
-        geometry_msgs::Pose n_pose;
-        
-        // calc relative x, y, yaw
-        theta = theta_unit * i;
-        rel_x = radius * cos(theta);
-        rel_y = radius * sin(theta);
-        yaw = fmod(theta+M_PI, 2*M_PI);
-
-        // transform to absolute vals
-        n_pose.position.x = object.position.x + rel_x;
-        n_pose.position.y = object.position.y + rel_y;
-        n_pose.position.z = 0.0;
-
-        tf::Quaternion ori;
-        ori.setRPY(0.0, 0.0, yaw);
-
-        n_pose.orientation.x = ori.getX();
-        n_pose.orientation.y = ori.getY();
-        n_pose.orientation.z = ori.getZ();
-        n_pose.orientation.w = ori.getW();
+    const double theta_unit = (2 * M_PI)/NUM_OF_SAMPLING_POINTS;
+    for(int i=0; i<NUM_OF_SAMPLING_POINTS; i++){       
+        // calc curr point
+        double theta = theta_unit * i;
+        geometry_msgs::Pose n_pose = get_position_from_radius_angle(object, radius, theta);
 
         poses.push_back(n_pose);
     }
@@ -206,7 +221,7 @@ bool DriverInterface::get_best_pose_in_rad(geometry_msgs::Pose &target, const ge
     return false;
 }
 
-bool DriverInterface::build_digoal(DIGoal &target, geometry_msgs::Pose &object, double radius){
+bool DriverInterface::build_digoal(DIGoal &target, geometry_msgs::Pose &object, double radius, double theta){
     // get robot position
     tf::StampedTransform robot_transform;
     _tf_listener.lookupTransform("map", "base_link", ros::Time(0), robot_transform);
@@ -218,8 +233,13 @@ bool DriverInterface::build_digoal(DIGoal &target, geometry_msgs::Pose &object, 
     // if needed, get robot's new pose in radius from goal
     geometry_msgs::Pose dest;
     if(radius > 0){
-        if(!get_best_pose_in_rad(dest, robot, object, radius)) // get new goal on radius
-            return false; // return false if no reachable goal on radius
+        if(theta < 0){ // nearest possible location case
+            if(!get_best_pose_in_rad(dest, robot, object, radius)) // get new goal on radius
+                return false; // return false if no reachable goal on radius
+        }
+        else{ // in case of an arbitrary angle
+            dest = get_position_from_radius_angle(object, radius, theta);
+        }
     }
     else{ // if no radius is given, just use original position
         dest = object;
@@ -241,7 +261,7 @@ bool DriverInterface::build_digoal(DIGoal &target, geometry_msgs::Pose &object, 
     return true;
 }
 
-bool DriverInterface::drive_block(geometry_msgs::Pose &object, double radius){
+bool DriverInterface::drive_block(geometry_msgs::Pose &object, double radius, double theta){
     if(!_ready){
         ROS_ERROR("DriverInterface is not ready!");
         return false;
@@ -249,7 +269,7 @@ bool DriverInterface::drive_block(geometry_msgs::Pose &object, double radius){
 
     DIGoal goal;
 
-    if(!build_digoal(goal, object, radius))
+    if(!build_digoal(goal, object, radius, theta))
         return false;
 
     _mb_client.sendGoalAndWait(goal);
@@ -258,7 +278,7 @@ bool DriverInterface::drive_block(geometry_msgs::Pose &object, double radius){
 }
 
 
-void DriverInterface::drive(geometry_msgs::Pose &object, double radius){
+void DriverInterface::drive(geometry_msgs::Pose &object, double radius, double theta){
     if(!_ready){
         ROS_ERROR("DriverInterface is not ready!");
         return;
@@ -266,7 +286,7 @@ void DriverInterface::drive(geometry_msgs::Pose &object, double radius){
 
     DIGoal goal;
 
-    if(build_digoal(goal, object, radius))
+    if(build_digoal(goal, object, radius, theta))
         _mb_client.sendGoal(goal);
 }
 
@@ -274,14 +294,14 @@ void DriverInterface::generic_done_callback(const CallbackBool f, const GoalStat
     f(state == GoalState::SUCCEEDED);
 }
 
-void DriverInterface::drive(const CallbackBool callback, geometry_msgs::Pose &object, double radius){
+void DriverInterface::drive(const CallbackBool callback, geometry_msgs::Pose &object, double radius, double theta){
     if(!_ready){
         ROS_ERROR("DriverInterface is not ready!");
         return;
     }
 
     DIGoal goal;
-    if(!build_digoal(goal, object, radius)){
+    if(!build_digoal(goal, object, radius, theta)){
         callback(false);
         return;
     }
@@ -345,7 +365,7 @@ bool DriverInterface::drive_block(const std::string &destination){
 	geometry_msgs::Pose obj = pose_iter->second;
 
 	DIGoal goal;
-    build_digoal(goal, obj, 0);
+    build_digoal(goal, obj, 0, 0);
     _mb_client.sendGoalAndWait(goal);
 
 	return _mb_client.getState() == GoalState::SUCCEEDED;
@@ -366,7 +386,7 @@ void DriverInterface::drive(const std::string &destination){
 	
 	geometry_msgs::Pose obj = pose_iter->second;
 	DIGoal goal;
-    build_digoal(goal, obj, 0);
+    build_digoal(goal, obj, 0, 0);
 	 
     _mb_client.sendGoal(goal);
 }
@@ -386,7 +406,7 @@ void DriverInterface::drive(const CallbackBool callback, const std::string &dest
 	
 	geometry_msgs::Pose obj = pose_iter->second;
 	DIGoal goal;
-    build_digoal(goal, obj, 0);
+    build_digoal(goal, obj, 0, 0);
 
     _mb_client.sendGoal(goal, boost::bind(&DriverInterface::generic_done_callback, boost::ref(this), callback, _1));
 }

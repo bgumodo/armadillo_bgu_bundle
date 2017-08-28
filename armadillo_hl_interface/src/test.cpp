@@ -82,64 +82,64 @@ bool lookup(geometry_msgs::Pose &pose, std::string object){
 }
 
 bool run_script(){
-    // // wait for a coffee request
-    // std::string talk;
-    // do{
-    //     ROS_INFO("listening...");
-    //     si->speech_to_text_block(10, talk);
-    //     ROS_INFO_STREAM("got: '" << talk << "'");
-    // } while(talk != "Get me coffee.");
+    // wait for a coffee request
+    std::string talk;
+    do{
+        ROS_INFO("listening...");
+        si->speech_to_text_block(10, talk);
+        ROS_INFO_STREAM("got: '" << talk << "'");
+    } while(talk != "Get me coffee.");
     
-    // // drive to elevator door
-    // if(!di->drive_block("coffee_room_door"))
-    //     return false;
+    // drive to elevator door
+    if(!di->drive_block("coffee_room_door"))
+        return false;
 
-    // // find button
+    // find button
     geometry_msgs::Pose p;
-    // if(!lookup(p, "button"))
-    //     return false;
-    // hi->move_head(0.0, 0.0); // head back to place
+    if(!lookup(p, "button"))
+        return false;
+    hi->move_head(0.0, 0.0); // head back to place
 
-    // // drive to button
-    // di->drive_block(p, 0.6);
+    // drive to button
+    di->drive_block(p, 0.6, DriverInterface::ANGLE_FRONT);
 
-    // // TODO: add option to move infront of the button
-    // // push button
-    // ai->push_button(p);
-    // ai->move("pre_grasp1"); // move arm back to driving position
+    // push button
+    ai->push_button(p);
+    ai->move("pre_grasp1"); // move arm back to driving position
     open_door();
 
     // enter coffee room
     di->drive_block("coffee_room");
     
-    // ask for coffee
-    // TODO: implement!
+    // // ask for coffee
+    // si->text_to_speech_block("Can I have some coffee?");
+    
     place_coffee();
+    ros::Duration(2.0).sleep();
 
     // find can
     if(!oh->find_object_block(p, "can"))
         return false;
-    hi->move_head(0.0, 0.0); // head back to place
 
     // drive to can
-    ai->move("pre_grasp2");
+    ai->move("pre_grasp3");
     hi->move_head(0.0, 0.3);
-    di->drive_block(p, 0.6);
-    ros::Duration(4.0).sleep();
+    di->drive_block(p, 0.55);
+    ti->move_block(MAX_HEIGHT_TORSO-0.05); // TODO: automate?
+    ros::Duration(2.0).sleep();
 
-    // look again to refine location (TODO: remove)
+    // look again to refine location
     if(!oh->find_object_block(p, "can", ObjectHandler::ARM_CAM))
         return false;
 
     // pickup can
-    while(!ai->pickup_block("can", p) && ros::ok()){
-        ROS_INFO("failed.");
-        ros::Duration(4.0).sleep();
-        ROS_INFO("trying to grasp again...");
-    }
+    if(!ai->pickup_block("can", p))
+        return false;
 
-    // // drive back
-    // di->drive_block("table_room");
+    // drive back
+    ai->move("pre_grasp3");
+    di->drive_block("table_room");
+    ti->move_block(MIN_HEIGHT_TORSO);
 
     return true;
 }
@@ -174,8 +174,7 @@ int main(int argc, char **argv){
     
     // some time to setup eveything
     // NOW START SPEECH NODE WITH PYTHON!
-    ros::Duration w(6.0);
-    w.sleep();
+    ros::Duration(5.0).sleep();
 
     // start script
     ROS_INFO("all ready! starting script...");
@@ -184,61 +183,6 @@ int main(int argc, char **argv){
         ROS_INFO("success!");
     else
         ROS_INFO("fail!");
-
-    // l_ai.move_block("pre_grasp3");
-    // geometry_msgs::Pose p;
-
-    // if(oh.find_object(p, "can")){
-    //     ROS_INFO("Found can, picking up...");
-    //     l_ai.pickup_block("can", p);
-    //     ROS_INFO("Placing back...");
-    //     l_ai.place("can", p);
-    //     ROS_INFO("done!");
-    // }
-    // else
-    //     ROS_INFO("Can't find object!");
-
-    // // build nodes
-    // // a small shortcut: note that we can also build a vector of functions, and ConjFSMNode will wrap them with FuncFSMNode for us.
-    // FSM fsm;
-    // FuncFSMNode a(&drive);
-    // FuncFSMNode b(&head);
-    // FuncFSMNode c(&torso);
-
-    // std::vector<FSMNode*> nodes;
-    // nodes.push_back(&b);
-    // nodes.push_back(&c);
-
-    // ConjFSMNode d(nodes);
-
-    // // register nodes to fsm
-    // // 0 and 1 are resrved to failure and success, respectively. FSM starts from node 2, unless other node is specified.
-    // fsm.add_node(2, &d);
-    // fsm.add_node(3, &a);
-
-    // // run FSM
-    // if(fsm.run())
-    //     ROS_INFO("Success!");
-    
-    // ROS_INFO("driving to door...");
-    // l_di.drive_block("coffee_room_door");
-    // ROS_INFO("driving back...");
-    // l_di.drive_block("table_room");
-    // ROS_INFO("done!");
-
-    // geometry_msgs::Pose p;
-    // while(ros::ok()){
-    //     if(l_oh.find_object_block(p, "button")){
-    //     //     // l_ai.move_block("pre_grasp1");
-    //     //     // ros::Duration(2.0).sleep();
-    //         ROS_INFO("found button, pushing...");
-    //     //     l_ai.push_button(p);
-    //     //     ROS_INFO("done!");
-    //     }
-    //     else
-    //         ROS_INFO("can't find object!");
-    //     ros::Duration(5.0).sleep();
-    // }
 
     ros::spin();
     return 0;

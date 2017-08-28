@@ -5,6 +5,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <tf/transform_listener.h>
 
@@ -51,12 +52,20 @@ void build_obj_dict(){
     
     // can
     objrec can;
-    can.h_low = 100;
+    // can.h_low = 100;
+    // can.s_low = 110;
+    // can.v_low = 30; //40
+    // can.h_high = 180;
+    // can.s_high = 200;
+    // can.v_high = 255;
+
+    can.h_low = 115;
     can.s_low = 110;
-    can.v_low = 40;
+    can.v_low = 30;
     can.h_high = 180;
-    can.s_high = 200;
+    can.s_high = 255;
     can.v_high = 255;
+
     can.shape.type = button.shape.CYLINDER;
     can.shape.dimensions.resize(2);
     can.shape.dimensions[0] = 0.17;
@@ -89,11 +98,15 @@ void find(std::string name, objrec rec, const unsigned char camera){
     }
 
     // get image and point-cloud
-    ros::Duration d(10.0);
+    ros::Duration d(2.0);
     
     // no message filter here, assuming robot dosn't move!
     boost::shared_ptr<const sensor_msgs::Image> rgb_msg = ros::topic::waitForMessage<sensor_msgs::Image>(rgb_topic, d);
     boost::shared_ptr<const sensor_msgs::PointCloud2> pcl_msg = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(pcl_topic, d);
+    // waiting for the second time, otherwise old messages are returned...
+    // TODO: find out why and fix this!
+    rgb_msg = ros::topic::waitForMessage<sensor_msgs::Image>(rgb_topic, d);
+    pcl_msg = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(pcl_topic, d);
     if(!rgb_msg || !pcl_msg){
         fail();
         return;
@@ -104,43 +117,55 @@ void find(std::string name, objrec rec, const unsigned char camera){
 
     // process image
     cv::GaussianBlur(rgb_img, rgb_img, cv::Size(5, 5), 1.0); // blur
-    cv::Mat hsv_img;
+    cv::Mat hsv_img, bin_img;
     cv::cvtColor(rgb_img, hsv_img, CV_RGB2HSV); // move to hsv
     int lower_arr[] = {rec.h_low, rec.s_low, rec.v_low};
     std::vector<int> lower(lower_arr, lower_arr+3);
     int upper_arr[] = {rec.h_high, rec.s_high, rec.v_high};
     std::vector<int> upper(upper_arr, upper_arr+3);
-    cv::inRange(hsv_img, lower, upper, hsv_img); // filter just reds
-    cv::morphologyEx(hsv_img, hsv_img, CV_MOP_OPEN, cv::Mat::ones(5, 5, hsv_img.type())); // do some cleaning
+    cv::inRange(hsv_img, lower, upper, bin_img); // filter just reds
+    cv::erode(bin_img, bin_img, cv::Mat::ones(5, 5, bin_img.type())); // clean noise
+    cv::dilate(bin_img, bin_img, cv::Mat::ones(10, 10, bin_img.type())); // connect objects
 
-    // find mean
-    int mean_x=0, mean_y=0, sum=0;
-    for(int i=0; i<hsv_img.rows; i++){
-        for(int j=0; j<hsv_img.cols; j++){
-            if(hsv_img.at<unsigned char>(i, j)){
-                sum++;
-                mean_x += j;
-                mean_y += i;
-            }
-        }
-    }
+    // find all 'blobs'
+    cv::SimpleBlobDetector::Params bd_params;
+    bd_params.filterByColor = true;
+    bd_params.blobColor = 255;
+    bd_params.filterByArea = true;
+    bd_params.minArea = 100;
+    bd_params.filterByCircularity = false;
+    bd_params.filterByConvexity = false;
+    bd_params.filterByInertia = false;
+    cv::SimpleBlobDetector detector(bd_params);
+    std::vector<cv::KeyPoint> keypoints;
+    detector.detect(bin_img, keypoints);
 
     // // for debug
-    // cv::imshow("sample", hsv_img);
+    // cv::drawKeypoints(bin_img, keypoints, bin_img, cv::Scalar(0,0,255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+    // cv::imshow("sample", bin_img);
     // cv::waitKey(0);
 
-    if(sum <= 10){
+    // no objects found
+    if(keypoints.size() == 0){
         fail();
         return;
     }
 
-    mean_x /= sum;
-    mean_y /= sum;
+    // find biggest 'blob'
+    double blob_size = 0;
+    int centroid_x, centroid_y;
+    for(int i=0; i<keypoints.size(); i++){
+        if(keypoints[i].size > blob_size){
+            blob_size = keypoints[i].size;
+            centroid_x = (int)keypoints[i].pt.x;
+            centroid_y = (int)keypoints[i].pt.y;
+        }
+    }
 
     // get location from mean
     pcl::PointCloud<pcl::PointXYZRGB> pcl_conv;
     pcl::fromROSMsg(*pcl_msg, pcl_conv);
-    pcl::PointXYZRGB point = pcl_conv[(mean_y * pcl_conv.width) + mean_x];
+    pcl::PointXYZRGB point = pcl_conv[(centroid_y * pcl_conv.width) + centroid_x];
     
     // convert to global position (relative to map)
     tf::TransformListener tf_listener;
