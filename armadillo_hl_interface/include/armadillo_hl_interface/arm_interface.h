@@ -83,7 +83,7 @@ class ArmInterface{
         bool place_block(const std::string object, const geometry_msgs::Pose &pose);
 
         // TODO: implement push_button(...)
-        // assuming button posiiton AND orientation are known
+        // assuming button position AND orientation are known
         void push_button(const geometry_msgs::Pose &pose);
 
         ~ArmInterface();

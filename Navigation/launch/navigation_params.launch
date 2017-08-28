@@ -16,9 +16,9 @@
 		<arg name="have_map_file" 	value="true"/>
 		<!--<arg name="world_name" 		value="$(find robotican_common)/worlds/objects_on_table.world"/>-->
 		<arg name="map_file" 		value="$(find robotican_common)/maps/building.yaml"/>
-		<arg name="x" 					value="-8.988"/>
+		<!--<arg name="x" 					value="-8.988"/>
 		<arg name="y" 					value="3.173"/>
-		<arg name="Y"					value="1.586"/>
+		<arg name="Y"					value="1.586"/>-->
 		<!--<arg name="x" 				value="-9.177"/>-->
 		<!--<arg name="y" 				value="2.773"/>-->
 		<!--<arg name="Y"				value="1.586"/>-->

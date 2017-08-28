@@ -18,7 +18,7 @@
 #include <geometry_msgs/Pose.h>
 #include <shape_msgs/SolidPrimitive.h>
 
-typedef struct objrec{
+struct objrec{
     int h_low;
     int s_low;
     int v_low;
@@ -26,7 +26,8 @@ typedef struct objrec{
     int s_high;
     int v_high;
     shape_msgs::SolidPrimitive shape;
-} props;
+    enum {DEFAULT, SURFACE} ori_type;
+};
 
 typedef std::pair<std::string, objrec> dict_item;
 
@@ -48,28 +49,22 @@ void build_obj_dict(){
     button.shape.dimensions[0] = 0.02;
     button.shape.dimensions[1] = 0.1;
     button.shape.dimensions[2] = 0.1;
+    button.ori_type = objrec::DEFAULT;
     obj_dict.insert(dict_item("button", button));
     
     // can
     objrec can;
-    // can.h_low = 100;
-    // can.s_low = 110;
-    // can.v_low = 30; //40
-    // can.h_high = 180;
-    // can.s_high = 200;
-    // can.v_high = 255;
-
     can.h_low = 115;
     can.s_low = 110;
     can.v_low = 30;
     can.h_high = 180;
     can.s_high = 255;
     can.v_high = 255;
-
     can.shape.type = button.shape.CYLINDER;
     can.shape.dimensions.resize(2);
     can.shape.dimensions[0] = 0.17;
     can.shape.dimensions[1] = 0.03;
+    can.ori_type = objrec::DEFAULT;
     obj_dict.insert(dict_item("can", can));
 }
 
@@ -78,6 +73,31 @@ void fail(){
     object_identification::find_results res_msg;
     res_msg.success = false;
     res_pub.publish(res_msg);
+}
+
+void get_object_orientation(geometry_msgs::Pose &pose, int ori_type, int x, int y, const cv::Mat &bin_image, const pcl::PointCloud<pcl::PointXYZRGB> &pcl, tf::StampedTransform transform){
+    switch(ori_type){
+        case objrec::DEFAULT:
+            pose.orientation.x = 0.0;
+            pose.orientation.y = 0.0;
+            pose.orientation.z = 0.0;
+            pose.orientation.w = 1.0;
+            break;
+        case objrec::SURFACE: // get orientation from the surface around the object (for example, a wall where a button is placed)
+            // find 3 anchor points
+            // TODO: handle edge cases (one of the sides is missing)
+            int x_right=x, x_left=x, y_top=y;
+            while(bin_image[y][x_right])
+                x_right++;
+            while(bin_image[y][x_left])
+                x_left--;
+            while(bin_image[y_top][x])
+                y_top--;
+            
+            // find points in pcl and transform
+            
+            break;
+    };
 }
 
 void find(std::string name, objrec rec, const unsigned char camera){
@@ -162,7 +182,7 @@ void find(std::string name, objrec rec, const unsigned char camera){
         }
     }
 
-    // get location from mean
+    // get location from keypoint
     pcl::PointCloud<pcl::PointXYZRGB> pcl_conv;
     pcl::fromROSMsg(*pcl_msg, pcl_conv);
     pcl::PointXYZRGB point = pcl_conv[(centroid_y * pcl_conv.width) + centroid_x];
@@ -182,14 +202,13 @@ void find(std::string name, objrec rec, const unsigned char camera){
     // publish location to topic and ps_interface
     ROS_INFO_STREAM("'" << name << "'' located at (map coordinates) > X: " << trans_vec.x() << ", Y: " << trans_vec.y() << ", Z: " << trans_vec.z());
     
-    // TODO: move this to dict-building function!
     moveit_msgs::CollisionObject col_obj;
     col_obj.header.frame_id = "map";
     col_obj.id = name;
 
     // object pose
     geometry_msgs::Pose pose;
-    pose.orientation.w = 1.0; // default orientation
+    get_object_orientation(pose, rec.ori_type, centroid_x, centroid_y, bin_img, pcl_conv, transform);
     pose.position.x = trans_vec.x();
     pose.position.y = trans_vec.y();
     pose.position.z = trans_vec.z();

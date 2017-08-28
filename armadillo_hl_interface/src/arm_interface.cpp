@@ -473,18 +473,13 @@ void ArmInterface::push_button(const geometry_msgs::Pose &pose){
     // publish a single frame with the button as its' origin
     tf::TransformBroadcaster tf_broadcaster;
     tf::Transform obj_origin;
-    // tf::StampedTransform obj_tf;
     
     obj_origin.setOrigin(tf::Vector3(pose.position.x, pose.position.y, pose.position.z));
     obj_origin.setRotation(tf::Quaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w));
-    // while(ros::ok()){
-        tf_broadcaster.sendTransform(tf::StampedTransform(obj_origin, ros::Time::now(), "map", "button"));
-        // ros::Duration(0.1).sleep();
-    // }
+    tf_broadcaster.sendTransform(tf::StampedTransform(obj_origin, ros::Time::now(), "map", "button"));
 
     // get transform for this frame
     _tf_listener.waitForTransform("base_link", "button", ros::Time(0), ros::Duration(2.0));
-    // _tf_listener.lookupTransform("base_link", "button", ros::Time(0), obj_tf);
 
     // find points relative to transforms
     geometry_msgs::PoseStamped org_approch, org_click, tf_approch, tf_click;
