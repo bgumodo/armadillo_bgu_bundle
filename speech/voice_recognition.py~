@@ -12,10 +12,12 @@ from collections import deque
 import time
 import math
 
-#from bing import BingSpeechAPI
+from bing import BingSpeechAPI
 import bing2
+import pyttsx3
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
+from armadillo_hl_interface.srv import TextToSpeech
 
 import rospy
 
@@ -183,10 +185,17 @@ def run_speech_to_text(ignore_me):
     return True, "success"
 
 
-def run_text_to_speech(ignore_me):
-    bing = BingSpeechAPI()
-    bing.text_to_speech(text='Can I have some coffee?')
-    return True, "success"
+def run_text_to_speech(req):
+    #bing = BingSpeechAPI()
+    #bing.text_to_speech(text='Can I have some coffee?')
+    
+    engine = pyttsx3.init()
+    engine.setProperty('rate',90)  #90 words per minute
+    engine.setProperty('volume',0.9) 
+    engine.say(req.text)
+    engine.runAndWait()
+    
+    return True
 
 
 def main():
@@ -200,7 +209,7 @@ def main():
     rospy.loginfo("{}: Initializing speech api node".format(fname))
 
     service = rospy.Service('speech_to_text', Trigger, run_speech_to_text)
-    service = rospy.Service('text_to_speech', Trigger, run_text_to_speech)
+    service = rospy.Service('text_to_speech', TextToSpeech, run_text_to_speech)
 
     rospy.spin()
 

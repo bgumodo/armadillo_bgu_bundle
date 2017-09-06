@@ -49,7 +49,7 @@ void build_obj_dict(){
     button.shape.dimensions[0] = 0.02;
     button.shape.dimensions[1] = 0.1;
     button.shape.dimensions[2] = 0.1;
-    button.ori_type = objrec::DEFAULT;
+    button.ori_type = objrec::DEFAULT; // should be objrec::SURFACE
     obj_dict.insert(dict_item("button", button));
     
     // can
@@ -75,6 +75,14 @@ void fail(){
     res_pub.publish(res_msg);
 }
 
+// tf::Vector3 get_cross_product(const tf::Vector3 &u, const tf::Vector3 &v){
+//     tf::Vector3 ans;
+//     ans.setX(u.y * v.z - u.z * v.y);
+//     ans.setY(u.z * v.x - u.x * v.z);
+//     ans.setZ(u.x * v.y - u.y * v.x);
+//     return ans;
+// }
+
 void get_object_orientation(geometry_msgs::Pose &pose, int ori_type, int x, int y, const cv::Mat &bin_image, const pcl::PointCloud<pcl::PointXYZRGB> &pcl, tf::StampedTransform transform){
     switch(ori_type){
         case objrec::DEFAULT:
@@ -87,15 +95,49 @@ void get_object_orientation(geometry_msgs::Pose &pose, int ori_type, int x, int 
             // find 3 anchor points
             // TODO: handle edge cases (one of the sides is missing)
             int x_right=x, x_left=x, y_top=y;
-            while(bin_image[y][x_right])
+            while(bin_image.at<char>(y, x_right))
                 x_right++;
-            while(bin_image[y][x_left])
+            while(bin_image.at<char>(y, x_left))
                 x_left--;
-            while(bin_image[y_top][x])
+            while(bin_image.at<char>(y_top, x))
                 y_top--;
+
+            ROS_INFO_STREAM("width: " << pcl.width << ", left: " << x_left << ", right: " << x_right);
+
+            // cv::imshow("hello", bin_image);
+            // cv::waitKey(0);
             
             // find points in pcl and transform
+            pcl::PointXYZRGB right_pcl = pcl[(y * pcl.width) + x_right];
+            pcl::PointXYZRGB left_pcl = pcl[(y * pcl.width) + x_left];
+            pcl::PointXYZRGB top_pcl = pcl[(y_top * pcl.width) + x];
+
+            // find angles
+            double m = (right_pcl.x - left_pcl.x) / (right_pcl.y - left_pcl.y); // slope
+            double op_angle = atan(-1/m);
+            double yaw = (1.5*M_PI) - op_angle;
+
+            ROS_INFO_STREAM("m: " << m << ", yaw: " << yaw);
+
+            // transform yaw
+            tf::Quaternion q;
+            q.setRPY(0.0, 0.0, yaw);
+            tf::Quaternion tras_q = transform * q;
+
+            // get transformed yaw
+            double t_roll, t_pitch, t_yaw;
+            tf::Matrix3x3 mat_yaw(tras_q);
+            mat_yaw.getRPY(t_roll, t_pitch, t_yaw);
+
+            // set orientation
+            tf::Quaternion q_final;
+            q_final.setRPY(0.0, 0.0, t_yaw); 
             
+            pose.orientation.x = q_final.x();
+            pose.orientation.y = q_final.y();
+            pose.orientation.z = q_final.z();
+            pose.orientation.w = q_final.w();
+            ROS_INFO_STREAM("x: " << pose.orientation.x << ", y: " << pose.orientation.y << ", z: " << pose.orientation.z << ", w: " << pose.orientation.w);
             break;
     };
 }

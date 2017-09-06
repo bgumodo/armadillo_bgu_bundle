@@ -167,7 +167,6 @@ class BingSpeechAPI:
 
         url = "https://speech.platform.bing.com/synthesize"
         response = self.session.post(url, headers=headers, data=body, stream=stream)
-        print(response)
         if stream:
             data = response.iter_content(chunk_size=chunk_size)
         else:

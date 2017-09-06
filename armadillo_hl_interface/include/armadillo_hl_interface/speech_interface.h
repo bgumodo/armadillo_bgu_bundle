@@ -34,6 +34,7 @@ class SpeechInterface{
     private:
         typedef actionlib::SimpleActionClient<armadillo_hl_interface::SpeechToTextAction> S2TClient;
         typedef actionlib::SimpleActionClient<armadillo_hl_interface::TextToSpeechAction> T2SClient;
+        typedef void (*CallbackBool)(bool success);
         typedef void (*CallbackSpeech)(bool success, std::string speech);
         typedef actionlib::SimpleClientGoalState GoalState;
         typedef armadillo_hl_interface::SpeechToTextGoal S2TGoal;
@@ -43,7 +44,8 @@ class SpeechInterface{
         T2SClient _t2s_client;
         boost::atomic<bool> _ready;
 
-        void generic_done_callback(const CallbackSpeech callback, const GoalState &state, armadillo_hl_interface::SpeechToTextResult::ConstPtr res);
+        void generic_done_callback(const CallbackBool f, const GoalState &state);
+        void generic_speech_callback(const CallbackSpeech callback, const GoalState &state, armadillo_hl_interface::SpeechToTextResult::ConstPtr res);
         void start_server();
         
     public:
@@ -52,8 +54,10 @@ class SpeechInterface{
         bool speech_to_text_block(int timeout, std::string &text);
         void speech_to_text(int timeout, CallbackSpeech callback);
 
-        // TODO: implement text-to-speech  
+        // TODO: implement text-to-speech
         bool text_to_speech_block(const std::string &text);
+        void text_to_speech(const std::string &text);
+        void text_to_speech(CallbackBool callback, const std::string &text);
 
         ~SpeechInterface();
 

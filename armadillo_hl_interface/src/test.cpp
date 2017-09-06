@@ -81,18 +81,18 @@ bool lookup(geometry_msgs::Pose &pose, std::string object){
     return false;
 }
 
-bool run_script(){
+bool run_script1(){
     // wait for a coffee request
-    std::string talk;
-    do{
-        ROS_INFO("listening...");
-        si->speech_to_text_block(10, talk);
-        ROS_INFO_STREAM("got: '" << talk << "'");
-    } while(talk != "Get me coffee.");
+    // std::string talk;
+    // do{
+    //     ROS_INFO("listening...");
+    //     si->speech_to_text_block(10, talk);
+    //     ROS_INFO_STREAM("got: '" << talk << "'");
+    // } while(talk != "Get me coffee.");
     
-    // drive to elevator door
-    if(!di->drive_block("coffee_room_door"))
-        return false;
+    // // drive to elevator door
+    // if(!di->drive_block("coffee_room_door"))
+    //     return false;
 
     // find button
     geometry_msgs::Pose p;
@@ -105,41 +105,41 @@ bool run_script(){
 
     // push button
     ai->push_button(p);
-    ai->move("pre_grasp1"); // move arm back to driving position
-    open_door();
+    // ai->move("pre_grasp1"); // move arm back to driving position
+    // open_door();
 
-    // enter coffee room
-    di->drive_block("coffee_room");
+    // // enter coffee room
+    // di->drive_block("coffee_room");
     
-    // // ask for coffee
-    // si->text_to_speech_block("Can I have some coffee?");
+    // // // ask for coffee
+    // // si->text_to_speech_block("Can I have some coffee?");
     
-    place_coffee();
-    ros::Duration(2.0).sleep();
+    // place_coffee();
+    // ros::Duration(2.0).sleep();
 
-    // find can
-    if(!oh->find_object_block(p, "can"))
-        return false;
+    // // find can
+    // if(!oh->find_object_block(p, "can"))
+    //     return false;
 
-    // drive to can
-    ai->move("pre_grasp3");
-    hi->move_head(0.0, 0.3);
-    di->drive_block(p, 0.55);
-    ti->move_block(MAX_HEIGHT_TORSO-0.05); // TODO: automate?
-    ros::Duration(2.0).sleep();
+    // // drive to can
+    // ai->move("pre_grasp3");
+    // hi->move_head(0.0, 0.3);
+    // di->drive_block(p, 0.55);
+    // ti->move_block(MAX_HEIGHT_TORSO-0.05); // TODO: automate?
+    // ros::Duration(2.0).sleep();
 
-    // look again to refine location
-    if(!oh->find_object_block(p, "can", ObjectHandler::ARM_CAM))
-        return false;
+    // // look again to refine location
+    // if(!oh->find_object_block(p, "can", ObjectHandler::ARM_CAM))
+    //     return false;
 
-    // pickup can
-    if(!ai->pickup_block("can", p))
-        return false;
+    // // pickup can
+    // if(!ai->pickup_block("can", p))
+    //     return false;
 
-    // drive back
-    ai->move("pre_grasp3");
-    di->drive_block("table_room");
-    ti->move_block(MIN_HEIGHT_TORSO);
+    // // drive back
+    // ai->move("pre_grasp3");
+    // di->drive_block("table_room");
+    // ti->move_block(MIN_HEIGHT_TORSO);
 
     return true;
 }
@@ -179,7 +179,7 @@ int main(int argc, char **argv){
     // start script
     ROS_INFO("all ready! starting script...");
 
-    if(run_script())
+    if(run_script1())
         ROS_INFO("success!");
     else
         ROS_INFO("fail!");

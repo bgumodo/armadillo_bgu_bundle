@@ -47,6 +47,8 @@ class ArmInterface{
         moveit_msgs::PickupGoal build_pickup_goal(const std::string &object, const geometry_msgs::Pose &pose, double sigma=0);
         moveit_msgs::PlaceGoal build_place_goal(const std::string &object, const geometry_msgs::Pose &pose);
 
+        bool move_to_cartesian(const geometry_msgs::Pose &pose);
+
     public:
         ArmInterface();
 

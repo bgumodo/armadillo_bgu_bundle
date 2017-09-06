@@ -168,7 +168,7 @@ void ArmInterface::move(const std::string &pose){
 }
 
 bool ArmInterface::move_block(const std::string &pose){
-     if(!_ready){
+    if(!_ready){
         ROS_ERROR("ArmInterface is not ready!");
         return false;
     }
@@ -463,6 +463,23 @@ bool ArmInterface::place_block(const std::string object, const geometry_msgs::Po
     return _place_client.getState() == GoalState::SUCCEEDED;
 }
 
+bool ArmInterface::move_to_cartesian(const geometry_msgs::Pose &pose){
+    std::vector<geometry_msgs::Pose> points;
+    points.push_back(pose);
+
+    moveit_msgs::RobotTrajectory trajectory;
+    double fraction = _move_group->computeCartesianPath(points, 0.01, 0.0, trajectory, true);
+
+    if(fraction < 0)
+        return false;
+
+    moveit::planning_interface::MoveGroup::Plan plan;
+    plan.trajectory_ = trajectory;
+    _move_group->setStartStateToCurrentState();
+    _move_group->execute(plan);
+    return true;
+}
+
 // TODO: fix transform (no publish), improve path
 void ArmInterface::push_button(const geometry_msgs::Pose &pose){
     if(!_ready){
@@ -489,7 +506,7 @@ void ArmInterface::push_button(const geometry_msgs::Pose &pose){
     org_approch.header.stamp = ros::Time(0);
     org_approch.header.frame_id = "button";
 
-    org_click.pose.position.x = -0.1;
+    org_click.pose.position.x = -0.2;
     org_click.pose.orientation.z = 1.0;
     org_click.header.stamp = ros::Time(0);
     org_click.header.frame_id = "button";
@@ -497,21 +514,13 @@ void ArmInterface::push_button(const geometry_msgs::Pose &pose){
     _tf_listener.transformPose("base_link", org_approch, tf_approch);
     _tf_listener.transformPose("base_link", org_click, tf_click);
 
+    // move_block(tf_approch.pose);
+    
     // plan to cartesian path, don't avoid colisions (to allow button press)
-    std::vector<geometry_msgs::Pose> points;
-    points.push_back(tf_approch.pose);
-    points.push_back(tf_click.pose);
-    points.push_back(tf_approch.pose);
-
-    moveit_msgs::RobotTrajectory trajectory;
-    double fraction = _move_group->computeCartesianPath(points, 0.01, 0.0, trajectory, false);
-    if(fraction >= 0){
-        close_gripper_block();
-        moveit::planning_interface::MoveGroup::Plan plan;
-        plan.trajectory_ = trajectory;
-        _move_group->setStartStateToCurrentState();
-        _move_group->execute(plan);
-    }
+    close_gripper_block();
+    move_to_cartesian(tf_approch.pose);
+    move_to_cartesian(tf_click.pose);
+    move_to_cartesian(tf_approch.pose);
 }
 
 ArmInterface::~ArmInterface()
