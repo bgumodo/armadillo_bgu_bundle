@@ -67,6 +67,8 @@ void SpeechServer::t2s_callback(const armadillo_hl_interface::TextToSpeechGoalCo
     }
 }
 
+// TODO: initialising the service client triggeres an error!
+
 void SpeechServer::s2t_callback(const armadillo_hl_interface::SpeechToTextGoalConstPtr &goal){
     // make sure inout is legal
     if(goal->timeout<0){
@@ -74,9 +76,10 @@ void SpeechServer::s2t_callback(const armadillo_hl_interface::SpeechToTextGoalCo
         armadillo_hl_interface::SpeechToTextResult result;
         _s2t_server->setPreempted(result);
     }
-    
+
     // trigger speech-to-text service
     ros::ServiceClient srv = _nh.serviceClient<std_srvs::Trigger>("speech_to_text");
+    ROS_INFO("calling service...");
     std_srvs::Trigger trg;
     srv.call(trg);
 
