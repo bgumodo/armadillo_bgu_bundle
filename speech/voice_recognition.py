@@ -11,6 +11,7 @@ import audioop
 from collections import deque
 import time
 import math
+import re
 
 from bing import BingSpeechAPI
 import bing2
@@ -22,6 +23,11 @@ from armadillo_hl_interface.srv import TextToSpeech
 import rospy
 
 __author__ = 'dan'
+
+
+def loginfo(text):
+    rospy.loginfo(text)
+    #print(text)
 
 
 class SpeechDetector:
@@ -54,7 +60,7 @@ class SpeechDetector:
             average intensities while you're talking and/or silent. The average
             is the avg of the .2 of the largest intensities recorded.
         """
-        rospy.loginfo("Getting intensity values from mic.")
+        loginfo("Getting intensity values from mic.")
         p = pyaudio.PyAudio()
         stream = p.open(format=self.FORMAT,
                         channels=self.CHANNELS,
@@ -66,8 +72,8 @@ class SpeechDetector:
                   for x in range(num_samples)]
         values = sorted(values, reverse=True)
         r = sum(values[:int(num_samples * 0.2)]) / int(num_samples * 0.2)
-        rospy.loginfo(" Finished ")
-        rospy.loginfo(" Average audio intensity is " + str(r))
+        loginfo(" Finished ")
+        loginfo(" Average audio intensity is " + str(r))
         stream.close()
         p.terminate()
 
@@ -78,7 +84,7 @@ class SpeechDetector:
 
         self.THRESHOLD = r + 100
 
-        rospy.loginfo('Threshold:' + str(self.THRESHOLD))
+        loginfo('Threshold:' + str(self.THRESHOLD))
 
     def save_speech(self, data, p):
         """
@@ -119,7 +125,7 @@ class SpeechDetector:
                         rate=self.RECORD_RATE,
                         input=True,
                         frames_per_buffer=self.CHUNK)
-        rospy.loginfo("* Mic set up and listening. ")
+        loginfo("* Mic set up and listening. ")
 
         audio2send = []
         cur_data = ''  # current chunk of audio data
@@ -138,12 +144,12 @@ class SpeechDetector:
 
             if sum([x > self.THRESHOLD for x in slid_win]) > 0:
                 if started == False:
-                    rospy.loginfo("Starting recording of phrase")
+                    loginfo("Starting recording of phrase")
                     started = True
                 audio2send.append(cur_data)
 
             elif started:
-                rospy.loginfo("Finished recording, decoding phrase")
+                loginfo("Finished recording, decoding phrase")
                 filename = self.save_speech(list(prev_audio) + audio2send, p)
 
                 wave_file = wave.open(filename, 'rb')
@@ -153,10 +159,38 @@ class SpeechDetector:
                 try:
                     #text = bing.recognize(speech, language='en-US')
                     text = bing2.recognize(filename)
+                    lowercase_text = text.lower()
+                    commands = {'command-bring-coffee': ['johnny.*coffee'],
+                                'coffee-ready': ['coffee.*ready', 'here.*coffee'],
+                                'floor-0': ['ground'],
+                                'floor-1': ['first', 'floor.*one'],
+                                'floor-2': ['second', 'floor.*two'],
+                                'floor-3': ['third', 'floor.*three'],
+                                'floor-4': ['fourth', 'floor.*four'],
+                                'floor-5': ['fifth', 'floor.*five'],
+                                'yes': ['yes', 'true', 'correct', 'exactly'],
+                                'no': ['no', 'false', 'incorrect', 'untrue']}
+
+                    recognized_command = None
+                    for command in commands:
+                        regexps = commands[command]
+                        for regexp in regexps:
+                            if re.match(regexp, lowercase_text):
+                                recognized_command = command
+                                break
+                        if recognized_command is not None:
+                            break
+
+                    if recognized_command is None:
+                        recognized_command = 'unrecongnized-command'
+
                     #text = text.encode('utf-8')
                     rospy.loginfo('STT:')
-                    rospy.loginfo(text)
-                    self.pub.publish(String(text))
+
+                    text_and_command = text + ' [Command:] ' + recognized_command
+
+                    loginfo(text_and_command)
+                    #self.pub.publish(String(text_and_command))
 
                 except ValueError:
                     rospy.loginfo('STT: ValueError')
@@ -174,7 +208,7 @@ class SpeechDetector:
             else:
                 prev_audio.append(cur_data)
 
-        rospy.loginfo("* Done listening")
+        loginfo("* Done listening")
         stream.close()
         p.terminate()
 
@@ -214,4 +248,5 @@ def main():
     rospy.spin()
 
 if __name__ == "__main__":
+    # run_speech_to_text('fewfwe')
     main()
