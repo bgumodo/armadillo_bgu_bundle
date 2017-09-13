@@ -5,6 +5,7 @@ The speech bundle supports both voice recognition and text to speech.
 # Voice Recognition
 
 Voice recognition uses Microsoft Bing API to recognize spoken words.
+
 It then detects the command type based on the following supported commands:
 
 ## Command:Regular Expressions
