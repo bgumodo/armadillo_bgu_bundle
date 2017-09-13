@@ -20,7 +20,7 @@ It then detects the command type based on the following supported commands:
 'yes': ['yes', 'true', 'correct', 'exactly'],  
 'no': ['no', 'false', 'incorrect', 'untrue']
 
-To support a new command, edit voice_recognition.py and inside "def run(self):" of SpeechDetector search for the above regular expressions dictionary and add the new command. E.g.  
+To support a new command, edit voice_recognition.py and inside "def run(self):" of SpeechDetector search for the regular expressions dictionary above and add the new command. E.g.  
 
 'no': ['no', 'false', 'incorrect', 'untrue'],  
 'maybe': ['maybe', 'not sure']}
