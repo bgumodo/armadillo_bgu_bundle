@@ -32,6 +32,6 @@ Then run "python voice_recognition.py".
 Then run "rqt".  
 Then select Plugins -> Services -> Service Caller from the main menu of rqt.  
 Select "speech_to_text" from the dropdown menu and press "Call".  
-Now you have be silent until you see "* Mic set up and listening." in the command line.  
+Now you have to be silent until you see "* Mic set up and listening." in the command line.  
 Then say a command such as: "Johnny bring me coffee" or "Coffee is ready".  
 You will see the recognized command in the command line.
