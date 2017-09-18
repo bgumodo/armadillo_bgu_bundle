@@ -84,8 +84,7 @@ PointHeadClient* point_head_client_;
 head_locations_e curr_location = HEAD_FRONT;
 
 
-/** 
-  * Sending Position Command... (Error)
+/** Sending Position Command... (Error)
   * We are now ready to send "position" commands using the Action interface to the Head Trajectory controller
   * Points the high-def camera frame at a point in a given frame. 
   */	

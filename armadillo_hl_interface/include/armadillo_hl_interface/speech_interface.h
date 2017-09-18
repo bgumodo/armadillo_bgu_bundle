@@ -54,10 +54,10 @@ class SpeechInterface{
         bool speech_to_text_block(int timeout, std::string &text);
         void speech_to_text(int timeout, CallbackSpeech callback);
 
-        // TODO: implement text-to-speech
+        // TODO: resolve issues with text-to-speech
         bool text_to_speech_block(const std::string &text);
-        void text_to_speech(const std::string &text);
-        void text_to_speech(CallbackBool callback, const std::string &text);
+        // void text_to_speech(const std::string &text);
+        // void text_to_speech(CallbackBool callback, const std::string &text);
 
         ~SpeechInterface();
 

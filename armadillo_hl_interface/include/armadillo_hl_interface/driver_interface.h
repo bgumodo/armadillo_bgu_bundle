@@ -99,6 +99,8 @@ class DriverInterface{
 
         void stop();
         bool is_ready();
+        // TODO: implement this!
+        double distance_from(const geometry_msgs::Pose &other); 
 
         ~DriverInterface();
 };

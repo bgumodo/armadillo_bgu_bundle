@@ -30,9 +30,8 @@ SpeechServer::SpeechServer():
     _s2t_server = new S2TActionServer(_nh, "speech_to_text_action", boost::bind(&SpeechServer::s2t_callback, boost::ref(this), _1), false);
     _s2t_server->start();
 
-    // TODO: resolve this!!
-    // _t2s_server = new T2SActionServer(_nh, "text_to_speech_action", boost::bind(&SpeechServer::t2s_callback, boost::ref(this), _1), false);
-    // _t2s_server->start();
+    _t2s_server = new T2SActionServer(_nh, "text_to_speech_action", boost::bind(&SpeechServer::t2s_callback, boost::ref(this), _1), false);
+    _t2s_server->start();
     
     // spin servers
     _active = true;
@@ -72,6 +71,7 @@ void SpeechServer::t2s_callback(const armadillo_hl_interface::TextToSpeechGoalCo
 
 void SpeechServer::s2t_callback(const armadillo_hl_interface::SpeechToTextGoalConstPtr &goal){
     // make sure input is legal
+     
     if(goal->timeout<0){
         ROS_ERROR("timeout must be 0 or longer!");
         armadillo_hl_interface::SpeechToTextResult result;
@@ -134,7 +134,7 @@ bool SpeechInterface::speech_to_text_block(int timeout, std::string &text){
         ROS_ERROR("SpeechInterface is not ready!");
         return false;
     }
-    
+
     // send goal to action serevr (and wait for answer)
     S2TGoal goal;
     goal.timeout = timeout;
@@ -166,8 +166,6 @@ void SpeechInterface::speech_to_text(int timeout, CallbackSpeech callback){
     _s2t_client.sendGoal(goal, boost::bind(&SpeechInterface::generic_speech_callback, boost::ref(this), callback, _1, _2));
 }
 
-
-// TODO: temp version, resolve issues and remove
 bool SpeechInterface::text_to_speech_block(const std::string &text){
     // make sure interface is ready
     if(!_ready){
@@ -175,59 +173,40 @@ bool SpeechInterface::text_to_speech_block(const std::string &text){
         return false;
     }
 
-    // trigger text-to-speech service
-    ros::NodeHandle nh;
-    ros::ServiceClient srv = nh.serviceClient<armadillo_hl_interface::TextToSpeech>("text_to_speech");
-    armadillo_hl_interface::TextToSpeech trg;
-    trg.request.text = text;
-    if(!srv.call(trg)){ // failed to call service
-        ROS_ERROR("TextToSpeech service is not available!");
-        return false;
-    }
-    return true;
+    // send goal to action serevr (and wait for answer)
+    T2SGoal goal;
+    goal.text = text;
+    _t2s_client.sendGoalAndWait(goal);
+
+    // return true for success
+    return _t2s_client.getState() == GoalState::SUCCEEDED;
 }
 
-// bool SpeechInterface::text_to_speech_block(const std::string &text){
-//     // make sure interface is ready
-//     if(!_ready){
-//         ROS_ERROR("SpeechInterface is not ready!");
-//         return false;
-//     }
+void SpeechInterface::text_to_speech(const std::string &text){
+    // make sure interface is ready
+    if(!_ready){
+        ROS_ERROR("SpeechInterface is not ready!");
+        return;
+    }
 
-//     // send goal to action serevr (and wait for answer)
-//     T2SGoal goal;
-//     goal.text = text;
-//     _t2s_client.sendGoalAndWait(goal);
+    // send goal to action serevr
+    T2SGoal goal;
+    goal.text = text;
+    _t2s_client.sendGoal(goal);
+}
 
-//     // return true for success
-//     return _t2s_client.getState() == GoalState::SUCCEEDED;
-// }
+void SpeechInterface::text_to_speech(CallbackBool callback, const std::string &text){
+    // make sure interface is ready
+    if(!_ready){
+        ROS_ERROR("SpeechInterface is not ready!");
+        return;
+    }
 
-// void SpeechInterface::text_to_speech(const std::string &text){
-//     // make sure interface is ready
-//     if(!_ready){
-//         ROS_ERROR("SpeechInterface is not ready!");
-//         return;
-//     }
-
-//     // send goal to action serevr
-//     T2SGoal goal;
-//     goal.text = text;
-//     _t2s_client.sendGoal(goal);
-// }
-
-// void SpeechInterface::text_to_speech(CallbackBool callback, const std::string &text){
-//     // make sure interface is ready
-//     if(!_ready){
-//         ROS_ERROR("SpeechInterface is not ready!");
-//         return;
-//     }
-
-//     // send goal to action serevr
-//     T2SGoal goal;
-//     goal.text = text;
-//     _t2s_client.sendGoal(goal, boost::bind(&SpeechInterface::generic_done_callback, boost::ref(this), callback, _1));
-// }
+    // send goal to action serevr
+    T2SGoal goal;
+    goal.text = text;
+    _t2s_client.sendGoal(goal, boost::bind(&SpeechInterface::generic_done_callback, boost::ref(this), callback, _1));
+}
 
 void SpeechInterface::start_server(){
     ROS_INFO("starting speech action-server...");

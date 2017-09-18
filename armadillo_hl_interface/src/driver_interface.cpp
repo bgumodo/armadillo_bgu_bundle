@@ -420,6 +420,11 @@ bool DriverInterface::is_ready(){
     return _ready == true;
 }
 
+// TODO: implement this!
+double DriverInterface::distance_from(const geometry_msgs::Pose &other){
+    return 0.0;
+}
+
 DriverInterface::~DriverInterface(){
 
 }

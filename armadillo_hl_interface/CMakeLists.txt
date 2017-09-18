@@ -24,7 +24,8 @@ add_action_files(
   FILES SimpleDriver.action Torso.action SpeechToText.action TextToSpeech.action
 )
 
-add_message_files()
+add_message_files(
+)
 
 add_service_files(
   FILES

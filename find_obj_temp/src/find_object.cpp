@@ -54,9 +54,12 @@ void build_obj_dict(){
     
     // can
     objrec can;
+    // can.h_low = 115;
+    // can.s_low = 110;
+    // can.v_low = 30;
     can.h_low = 115;
     can.s_low = 110;
-    can.v_low = 30;
+    can.v_low = 50;
     can.h_high = 180;
     can.s_high = 255;
     can.v_high = 255;

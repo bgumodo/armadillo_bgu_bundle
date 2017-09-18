@@ -185,12 +185,12 @@ class SpeechDetector:
                         recognized_command = 'unrecongnized-command'
 
                     #text = text.encode('utf-8')
-                    rospy.loginfo('STT:')
+                    #rospy.loginfo('STT:')
 
-                    text_and_command = text + ' [Command:] ' + recognized_command
+                    #text_and_command = text + ' [Command:] ' + recognized_command
 
-                    loginfo(text_and_command)
-                    #self.pub.publish(String(text_and_command))
+                    #loginfo(text_and_command)
+                    self.pub.publish(String(text))
 
                 except ValueError:
                     rospy.loginfo('STT: ValueError')

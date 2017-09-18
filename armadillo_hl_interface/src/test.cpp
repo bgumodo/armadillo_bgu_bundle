@@ -62,6 +62,20 @@ void place_coffee(){
     ros::Duration(1.0);
 }
 
+// place cofee for the begining of simulation 2
+void init_coffee(){
+    geometry_msgs::Pose pose;
+    pose.position.x = 0.717489;
+    pose.position.y = 0.123294;
+    pose.position.z = 0.442722;
+    pose.orientation.x = 0.0;
+    pose.orientation.y = 0.0;
+    pose.orientation.z = 0.0;
+    pose.orientation.w = 1.0;
+    add_model("can", pose, "/home/bgumodo2/catkin_ws/src/robotican/robotican_common/models/coke_can_slim/coke_can_slim.sdf");
+    ros::Duration(1.0);
+}
+
 bool lookup(geometry_msgs::Pose &pose, std::string object){
     hi->move_head_block(1.0, 0.0);
     ros::Duration(1.0).sleep(); // wait for head to stop moving
@@ -83,6 +97,7 @@ bool lookup(geometry_msgs::Pose &pose, std::string object){
 
 bool run_script1(){
     // wait for a coffee request
+
     std::string talk;
     do{
         ROS_INFO("listening...");
@@ -144,6 +159,47 @@ bool run_script1(){
     return true;
 }
 
+bool run_script2(){
+    // // place cofee in place for script2
+    // init_coffee();
+
+    // // find can
+    // hi->move_head_block(0.0, 0.5); // tilt head
+    // ros::Duration(2.0).sleep();
+    // geometry_msgs::Pose p;
+    // if(!oh->find_object_block(p, "can"))
+    //     return false;
+    // hi->move_head(0.0, 0.0); // head back to place
+
+    // // drive to can
+    // ai->move("pre_grasp3");
+    // hi->move_head(0.0, 0.3);
+    // di->drive_block(p, 0.55);
+    // ros::Duration(1.0).sleep();
+
+    // // look again to refine location
+    // if(!oh->find_object_block(p, "can", ObjectHandler::ARM_CAM))
+    //     return false;
+
+    // // pickup can
+    // if(!ai->pickup_block("can", p))
+    //     return false;
+
+    // drive to elevator door
+    if(!di->drive_block("coffee_room_door"))
+        return false;
+    
+    // ran into a door...
+    si->text_to_speech_block("oh no!");
+
+    // turn around and look for a place put the can
+    di->drive_block(5.0, 0.3, 0.2);
+    di->drive_block(5.0, 0.3, -0.2);
+    di->drive_block(5.0, 0.3, 0.2);
+    di->drive_block(5.0, 0.3, -0.2);
+
+}
+
 int main(int argc, char **argv){
     // init node
     ros::init(argc, argv, "test_node");
@@ -179,7 +235,8 @@ int main(int argc, char **argv){
     // start script
     ROS_INFO("all ready! starting script...");
 
-    if(run_script1())
+    // here you can set the script number
+    if(run_script2())
         ROS_INFO("success!");
     else
         ROS_INFO("fail!");
