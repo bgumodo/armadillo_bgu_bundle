@@ -72,16 +72,22 @@ void build_obj_dict(){
 
     // bench
     objrec bench;
-    bench.h_low = 0;
-    bench.s_low = 40;
-    bench.v_low = 50;
-    bench.h_high = 25;
+    // bench.h_low = 0;
+    // bench.s_low = 40;
+    // bench.v_low = 50;
+    // bench.h_high = 25;
+    // bench.s_high = 255;
+    // bench.v_high = 200;
+    bench.h_low = 100;
+    bench.s_low = 100;
+    bench.v_low = 100;
+    bench.h_high = 255;
     bench.s_high = 255;
-    bench.v_high = 200;
+    bench.v_high = 255;
     bench.shape.type = button.shape.BOX;
     bench.shape.dimensions.resize(3);
     bench.shape.dimensions[0] = 0.3;
-    bench.shape.dimensions[1] = 1.5;
+    bench.shape.dimensions[1] = 1.1;
     bench.shape.dimensions[2] = 0.02;
     bench.ori_type = objrec::DEFAULT; // should be objrec::SURFACE
     obj_dict.insert(dict_item("bench", bench));
@@ -221,10 +227,10 @@ void find(std::string name, objrec rec, const unsigned char camera){
     std::vector<cv::KeyPoint> keypoints;
     detector.detect(bin_img, keypoints);
 
-    // for debug
-    cv::drawKeypoints(bin_img, keypoints, bin_img, cv::Scalar(0,0,255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-    cv::imshow("sample", bin_img);
-    cv::waitKey(0);
+    // // for debug
+    // cv::drawKeypoints(bin_img, keypoints, bin_img, cv::Scalar(0,0,255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+    // cv::imshow("sample", bin_img);
+    // cv::waitKey(0);
 
     // no objects found
     if(keypoints.size() == 0){

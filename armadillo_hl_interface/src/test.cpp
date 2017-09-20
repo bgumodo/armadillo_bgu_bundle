@@ -101,9 +101,11 @@ bool run_script1(){
     std::string talk;
     do{
         ROS_INFO("listening...");
+        si->text_to_speech_block("What should I get you?");
         si->speech_to_text_block(10, talk);
         ROS_INFO_STREAM("got: '" << talk << "'");
     } while(talk != "Get me coffee.");
+    si->text_to_speech_block("I'm going to get you coffee.");
     
     // drive to elevator door
     if(!di->drive_block("coffee_room_door"))
@@ -163,43 +165,47 @@ bool run_script2(){
     // place cofee in place for script2
     init_coffee();
 
-    // // find can
-    // hi->move_head_block(0.0, 0.5); // tilt head
-    // ros::Duration(2.0).sleep();
+    // find can
+    hi->move_head_block(0.0, 0.5); // tilt head
+    ros::Duration(2.0).sleep();
     geometry_msgs::Pose p;
-    // if(!oh->find_object_block(p, "can"))
-    //     return false;
-    // hi->move_head(0.0, 0.0); // head back to place
+    if(!oh->find_object_block(p, "can"))
+        return false;
+    hi->move_head(0.0, 0.0); // head back to place
 
-    // // drive to can
-    // ai->move("pre_grasp3");
-    // hi->move_head(0.0, 0.3);
-    // di->drive_block(p, 0.55);
-    // ros::Duration(1.0).sleep();
+    // drive to can
+    ai->move("pre_grasp3");
+    hi->move_head(0.0, 0.3);
+    di->drive_block(p, 0.55);
+    ros::Duration(1.0).sleep();
 
-    // // look again to refine location
-    // if(!oh->find_object_block(p, "can", ObjectHandler::ARM_CAM))
-    //     return false;
+    // look again to refine location
+    if(!oh->find_object_block(p, "can", ObjectHandler::ARM_CAM))
+        return false;
 
-    // // pickup can
-    // if(!ai->pickup_block("can", p))
-    //     return false;
+    // pickup can
+    if(!ai->pickup_block("can", p))
+        return false;
 
-    // // drive to elevator door
-    // if(!di->drive_block("coffee_room_door"))
-    //     return false;
+    // drive to elevator door
+    if(!di->drive_block("coffee_room_door"))
+        return false;
     
-    // // ran into a door...
-    // si->text_to_speech_block("oh no!");
+    // ran into a door...
+    si->text_to_speech_block("oh no!");
 
-    // // turn around and look for a place put the can
-    // di->drive_block(5.0, 0.3, 0.2);
-    // di->drive_block(5.0, 0.3, -0.2);
-    // di->drive_block(5.0, 0.3, 0.2);
-    // di->drive_block(5.0, 0.3, -0.2);
+    // turn around and look for a place put the can
+    di->drive_block(5.0, 0.3, 0.2);
+    di->drive_block(5.0, 0.3, -0.2);
+    di->drive_block(5.0, 0.3, 0.2);
+    di->drive_block(5.0, 0.3, -0.2);
 
     if(!oh->find_object_block(p, "bench"))
         return false;
+    
+    di->drive_block(p, 0.55, DriverInterface::ANGLE_FRONT);
+
+    ai->place_block("can", p);
 
 }
 
