@@ -19,17 +19,17 @@ ObjectHandler *oh;
 bool lookup(geometry_msgs::Pose &pose, std::string object){
     hi->move_head_block(1.0, 0.0);
     ros::Duration(1.0).sleep(); // wait for head to stop moving
-    if(oh->find_object_block(pose, "button"))
+    if(oh->find_object_block(pose, object))
         return true;
 
     hi->move_head_block(0.0, 0.0);
     ros::Duration(1.0).sleep(); // wait for head to stop moving
-    if(oh->find_object_block(pose, "button"))
+    if(oh->find_object_block(pose, object))
         return true;
 
     hi->move_head_block(-1.0, 0.0);
     ros::Duration(1.0).sleep(); // wait for head to stop moving
-    if(oh->find_object_block(pose, "button"))
+    if(oh->find_object_block(pose, object))
         return true;
 
     return false;
@@ -40,10 +40,19 @@ bool run_script(){
     std::string talk;
     do{
         ROS_INFO("listening...");
+        si->text_to_speech_block("What should I do?");
         si->speech_to_text_block(10, talk);
         ROS_INFO_STREAM("got: '" << talk << "'");
         si->text_to_speech_block("I got " + talk);
-    } while(talk != "Get me coffee.");
+    } while(talk != "Get me coke.");
+
+    geometry_msgs::Pose pose;
+    if(!lookup(pose, "coke")){
+        si->text_to_speech_block("I can't find the coke.");
+        return false;
+    }
+
+    si->text_to_speech_block("I've found the coke.");
 
     return true;
 }
