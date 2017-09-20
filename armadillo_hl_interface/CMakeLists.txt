@@ -51,4 +51,16 @@ add_executable(testing
   src/speech_interface.cpp
   src/test.cpp)
 
-target_link_libraries(testing ${catkin_LIBRARIES})
+  target_link_libraries(testing ${catkin_LIBRARIES})
+
+  add_executable(robot_testing
+  src/fsm.cpp
+  src/head_interface.cpp
+  src/arm_interface.cpp
+  src/object_handler.cpp
+  src/driver_interface.cpp
+  src/torso_interface.cpp
+  src/speech_interface.cpp
+  src/robot_test.cpp)
+
+target_link_libraries(robot_testing ${catkin_LIBRARIES})

@@ -162,6 +162,7 @@ class SpeechDetector:
                     lowercase_text = text.lower()
                     commands = {'command-bring-coffee': ['johnny.*coffee'],
                                 'coffee-ready': ['coffee.*ready', 'here.*coffee'],
+								'coke': ['pick the can'],
                                 'floor-0': ['ground'],
                                 'floor-1': ['first', 'floor.*one'],
                                 'floor-2': ['second', 'floor.*two'],

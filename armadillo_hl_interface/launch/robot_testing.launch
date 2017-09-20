@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+    <include file="$(find Navigation)/launch/navigation_params.launch"/>
+
+    <node name="find_obj_temp" pkg="find_obj_temp" type="find_obj_temp" output="screen"/>
+
+     <node name="robot_testing" pkg="armadillo_hl_interface" type="robot_testing" output="screen"/>
+     
+</launch>

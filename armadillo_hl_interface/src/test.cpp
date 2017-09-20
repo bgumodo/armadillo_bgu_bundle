@@ -160,13 +160,13 @@ bool run_script1(){
 }
 
 bool run_script2(){
-    // // place cofee in place for script2
-    // init_coffee();
+    // place cofee in place for script2
+    init_coffee();
 
     // // find can
     // hi->move_head_block(0.0, 0.5); // tilt head
     // ros::Duration(2.0).sleep();
-    // geometry_msgs::Pose p;
+    geometry_msgs::Pose p;
     // if(!oh->find_object_block(p, "can"))
     //     return false;
     // hi->move_head(0.0, 0.0); // head back to place
@@ -185,18 +185,21 @@ bool run_script2(){
     // if(!ai->pickup_block("can", p))
     //     return false;
 
-    // drive to elevator door
-    if(!di->drive_block("coffee_room_door"))
-        return false;
+    // // drive to elevator door
+    // if(!di->drive_block("coffee_room_door"))
+    //     return false;
     
-    // ran into a door...
-    si->text_to_speech_block("oh no!");
+    // // ran into a door...
+    // si->text_to_speech_block("oh no!");
 
-    // turn around and look for a place put the can
-    di->drive_block(5.0, 0.3, 0.2);
-    di->drive_block(5.0, 0.3, -0.2);
-    di->drive_block(5.0, 0.3, 0.2);
-    di->drive_block(5.0, 0.3, -0.2);
+    // // turn around and look for a place put the can
+    // di->drive_block(5.0, 0.3, 0.2);
+    // di->drive_block(5.0, 0.3, -0.2);
+    // di->drive_block(5.0, 0.3, 0.2);
+    // di->drive_block(5.0, 0.3, -0.2);
+
+    if(!oh->find_object_block(p, "bench"))
+        return false;
 
 }
 

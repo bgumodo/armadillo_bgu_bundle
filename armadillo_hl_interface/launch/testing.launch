@@ -1,16 +1,13 @@
 <?xml version="1.0"?>
 <launch>
 
-
-
     <include file="$(find Navigation)/launch/navigation_params.launch"/>
-
 
     <!--<node name="objects_handler" pkg="robotican_common" type="objects_handler" output="screen"/>-->
 
     <!--<node name="find_object_node" pkg="robotican_common" type="find_objects_node" output="screen"/>-->
 
-    <node name="start_node" pkg="speech_api" type="start_node.py" output="screen"/>
+    <!--<node name="start_node" pkg="speech_api" type="start_node.py" output="screen"/>-->
 
     <node name="find_obj_temp" pkg="find_obj_temp" type="find_obj_temp" output="screen"/>
 

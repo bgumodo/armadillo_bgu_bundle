@@ -11,18 +11,12 @@
 
 	-->
 	<include file="$(find robotican_armadillo)/launch/armadillo.launch">
-		<arg name="gazebo"		    value="true"/>
-		<arg name="world_name" 		value="$(find robotican_common)/worlds/building_with_elevator.world"/>
-		<arg name="have_map_file" 	value="true"/>
-		<!--<arg name="world_name" 		value="$(find robotican_common)/worlds/objects_on_table.world"/>-->
+		<!--<arg name="have_map_file" 	value="true"/>-->
 		<arg name="map_file" 		value="$(find robotican_common)/maps/building.yaml"/>
-		<arg name="x" 					value="-9.102"/>
-		<arg name="y" 					value="3.586"/>
-		<arg name="Y"					value="-1.846"/>
 		<arg name="move_base" 		value="true"/>
 		<arg name="lidar" 			value="true"/>
-		<arg name="amcl" 			value="true"/>
-		<!--<arg name="gmapping"		value="true"/>-->
+		<!--<arg name="amcl" 			value="true"/>-->
+		<arg name="gmapping"		value="true"/>
 		<arg name="kinect2"			value="true"/>
 		<arg name="softkinetic"		value="true"/>
 		<arg name="moveit"			value="true"/>
