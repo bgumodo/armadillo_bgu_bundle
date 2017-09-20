@@ -37,14 +37,14 @@ bool lookup(geometry_msgs::Pose &pose, std::string object){
 
 bool run_script(){
     // wait for a coffee request
-    std::string talk;
-    do{
-        ROS_INFO("listening...");
-        si->text_to_speech_block("What should I do?");
-        si->speech_to_text_block(10, talk);
-        ROS_INFO_STREAM("got: '" << talk << "'");
-        si->text_to_speech_block("I got " + talk);
-    } while(talk != "Get me coke.");
+    // std::string talk;
+    // do{
+    //     ROS_INFO("listening...");
+    //     si->text_to_speech_block("What should I do?");
+    //     si->speech_to_text_block(10, talk);
+    //     ROS_INFO_STREAM("got: '" << talk << "'");
+    //     si->text_to_speech_block("I got " + talk);
+    // } while(talk != "Get me coke.");
 
     geometry_msgs::Pose pose;
     if(!lookup(pose, "coke")){
