@@ -47,7 +47,7 @@ bool run_script(){
     // } while(talk != "Get me coke.");
 
     geometry_msgs::Pose pose;
-    if(!lookup(pose, "coke")){
+    if(!lookup(pose, "can")){
         si->text_to_speech_block("I can't find the coke.");
         return false;
     }
