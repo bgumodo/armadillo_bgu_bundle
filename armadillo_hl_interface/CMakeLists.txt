@@ -40,6 +40,13 @@ catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS actionlib_msgs
 )
+add_executable(speech_pub 
+src/speech_pub.cpp
+src/speech_interface.cpp)
+target_link_libraries(speech_pub ${catkin_LIBRARIES})
+
+add_executable(drive_and_pick_speech src/drive_and_pick_speech.cpp)
+target_link_libraries(drive_and_pick_speech ${catkin_LIBRARIES})
 
 add_executable(testing
   src/fsm.cpp
@@ -62,5 +69,6 @@ add_executable(testing
   src/torso_interface.cpp
   src/speech_interface.cpp
   src/robot_test.cpp)
+  
 
 target_link_libraries(robot_testing ${catkin_LIBRARIES})

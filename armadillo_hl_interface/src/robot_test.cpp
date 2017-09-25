@@ -37,23 +37,41 @@ bool lookup(geometry_msgs::Pose &pose, std::string object){
 
 bool run_script(){
     // wait for a coffee request
-    // std::string talk;
-    // do{
-    //     ROS_INFO("listening...");
-    //     si->text_to_speech_block("What should I do?");
-    //     si->speech_to_text_block(10, talk);
-    //     ROS_INFO_STREAM("got: '" << talk << "'");
-    //     si->text_to_speech_block("I got " + talk);
-    // } while(talk != "Get me coke.");
+    std::string talk;
+    do{
+        ROS_INFO("listening...");
+        si->text_to_speech_block("What should I get you?");
+        si->speech_to_text_block(10, talk);
+        ROS_INFO_STREAM("got: '" << talk << "'");
+        si->text_to_speech_block("I got " + talk);
+    } while(talk != "Coffee.");
+
+    ai->move_block("pre_grasp3"); // move arm back to driving position
+    ros::Duration(2.0).sleep();
 
     geometry_msgs::Pose pose;
-    if(!lookup(pose, "can")){
-        si->text_to_speech_block("I can't find the coke.");
+    if(!lookup(pose, "can_real")){
+        si->text_to_speech_block("I can't find the coffee.");
         return false;
     }
 
-    si->text_to_speech_block("I've found the coke.");
+    si->text_to_speech_block("I've found the coffee.");
+    hi->move_head(0.0, 0.0);
 
+    di->drive_block(pose, 0.4);
+    
+    // look again to refine location
+    hi->move_head_block(0.0, 0.5);
+    if(!oh->find_object_block(pose, "can_real", ObjectHandler::HEAD_CAM))
+        return false;
+
+    // pickup can
+    if(!ai->pickup_block("can_real", pose))
+        return false;
+
+    if(!ai->place_block("can_real", pose))
+        return false;
+        
     return true;
 }
 

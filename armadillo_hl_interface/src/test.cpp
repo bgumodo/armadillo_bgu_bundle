@@ -209,6 +209,10 @@ bool run_script2(){
 
 }
 
+void torso_callback(bool succ){
+    ROS_INFO("DONE GOING DOWN");
+}
+
 int main(int argc, char **argv){
     // init node
     ros::init(argc, argv, "test_node");
@@ -229,27 +233,35 @@ int main(int argc, char **argv){
     SpeechInterface l_si;
     ObjectHandler l_oh;
 
-    // make them global
-    hi = &l_hi;
-    di = &l_di;
-    ti = &l_ti;
-    ai = &l_ai;
-    si = &l_si;
-    oh = &l_oh;
+    // // make them global
+    // hi = &l_hi;
+    // di = &l_di;
+    // ti = &l_ti;
+    // ai = &l_ai;
+    // si = &l_si;
+    // oh = &l_oh;
     
     // some time to setup eveything
     // NOW START SPEECH NODE WITH PYTHON!
     ros::Duration(5.0).sleep();
 
-    // start script
-    ROS_INFO("all ready! starting script...");
+    // // start script
+    // ROS_INFO("all ready! starting script...");
 
-    // here you can set the script number
-    if(run_script2())
-        ROS_INFO("success!");
-    else
-        ROS_INFO("fail!");
+    // // here you can set the script number
+    // if(run_script2())
+    //     ROS_INFO("success!");
+    // else
+    //     ROS_INFO("fail!");
 
+    // ros::spin();
+
+    l_ti.move_block(0.3);
+    ROS_INFO("DONE GOING UP");
+    l_ti.move(torso_callback, 0.05);
+    ROS_INFO("GOING DOWN");
     ros::spin();
+    
+
     return 0;
 }
