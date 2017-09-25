@@ -242,10 +242,10 @@ void find(std::string name, objrec rec, const unsigned char camera){
     std::vector<cv::KeyPoint> keypoints;
     detector.detect(bin_img, keypoints);
 
-    // for debug
-    cv::drawKeypoints(bin_img, keypoints, bin_img, cv::Scalar(0,0,255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-    cv::imshow("sample", bin_img);
-    cv::waitKey(0);
+    // // for debug
+    // cv::drawKeypoints(bin_img, keypoints, bin_img, cv::Scalar(0,0,255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+    // cv::imshow("sample", bin_img);
+    // cv::waitKey(0);
 
     // no objects found
     if(keypoints.size() == 0){

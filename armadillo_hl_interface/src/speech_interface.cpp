@@ -79,8 +79,8 @@ void SpeechServer::s2t_callback(const armadillo_hl_interface::SpeechToTextGoalCo
     }
 
     // trigger speech-to-text service
-    ros::ServiceClient srv = _nh.serviceClient<std_srvs::Trigger>("speech_to_text");
     ROS_INFO("calling service...");
+    ros::ServiceClient srv = _nh.serviceClient<std_srvs::Trigger>("speech_to_text");
     std_srvs::Trigger trg;
     srv.call(trg);
 
@@ -112,10 +112,12 @@ SpeechServer::~SpeechServer(){
 SpeechInterface::SpeechInterface():
     _s2t_client("speech_to_text_action", true),
     _t2s_client("text_to_speech_action", true),
+    _server_thread(0),
+    _server(0),
     _ready(false)
 {
     // start server thread
-    boost::thread server_thread(&SpeechInterface::start_server, this);
+    _server_thread = new boost::thread(&SpeechInterface::start_server, this);
 
     // wait for server to come-up
     ros::Duration w(1.0);
@@ -156,7 +158,7 @@ void SpeechInterface::generic_done_callback(const CallbackBool f, const GoalStat
 void SpeechInterface::speech_to_text(int timeout, CallbackSpeech callback){
     // make sure interface is ready
     if(!_ready){
-        ROS_ERROR("SpeechInterface is not ready!");
+        ROS_ERROR("SpeechInterface is not readnony!");
         return;
     }
 
@@ -231,9 +233,13 @@ bool SpeechInterface::text_to_speech_block(const std::string &text){
 
 void SpeechInterface::start_server(){
     ROS_INFO("starting speech action-server...");
-    SpeechServer server;
+    _server = new SpeechServer();
 }
 
 SpeechInterface::~SpeechInterface(){
-
+    // stop server and wait for server thread
+    _server->stop_server();
+    _server_thread->join();
+    delete _server;
+    delete _server_thread;
 }

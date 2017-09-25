@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
+#include <boost/thread.hpp>
 #include <armadillo_hl_interface/SpeechToTextGoal.h>
 #include <armadillo_hl_interface/SpeechToTextAction.h>
 #include <armadillo_hl_interface/TextToSpeechGoal.h>
@@ -21,7 +22,6 @@ class SpeechServer{
         void t2s_callback(const armadillo_hl_interface::TextToSpeechGoalConstPtr &goal);
         void s2t_listener(const std_msgs::String::ConstPtr &msg);
 
-
     public:
         SpeechServer();
 
@@ -42,6 +42,8 @@ class SpeechInterface{
 
         S2TClient _s2t_client;
         T2SClient _t2s_client;
+        boost::thread *_server_thread;
+        SpeechServer *_server;
         boost::atomic<bool> _ready;
 
         void generic_done_callback(const CallbackBool f, const GoalState &state);
