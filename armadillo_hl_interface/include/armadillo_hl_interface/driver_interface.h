@@ -11,6 +11,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <armadillo_hl_interface/SimpleDriverAction.h>
 #include <boost/atomic.hpp>
+#include <boost/thread.hpp>
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
@@ -25,7 +26,7 @@ class SimpleDriverServer{
         ros::CallbackQueue _cbq;
         ActionServer *_action_server;
         tf::TransformListener _tf_listener;
-        ros::Publisher _pub;        
+        ros::Publisher _pub;
         boost::atomic<bool> _active;
         
         void callback(const armadillo_hl_interface::SimpleDriverGoalConstPtr &goal);
@@ -56,6 +57,8 @@ class DriverInterface{
         costmap_2d::Costmap2DROS _cm_interface;
         base_local_planner::CostmapModel _cm_model;
         std::map<std::string, geometry_msgs::Pose> _dest_map;
+        SimpleDriverServer *_sd_server;
+        boost::thread *_sd_thread;
 
         // used to wrap the user's callback function'
         void generic_done_callback(const CallbackBool f, const GoalState &state);

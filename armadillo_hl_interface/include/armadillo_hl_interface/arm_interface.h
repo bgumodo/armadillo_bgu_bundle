@@ -35,10 +35,13 @@ class ArmInterface{
         PickupClient _pickup_client;
         PlaceClient _place_client;
         boost::mt19937 _rnd_gen;
+        boost::thread *_spinner_thread;
         boost::atomic<bool> _ready;
+        boost::atomic<bool> _spin;
 
         void generic_done_callback(const CallbackBool f, const GoalState &state);
-        void spinner_thread();
+        void start_spinner();
+        void stop_spinner();
         double gripper_validation(double val);
 
         bool plan_to_xyz(moveit::planning_interface::MoveGroup::Plan &plan, double x, double y, double z);

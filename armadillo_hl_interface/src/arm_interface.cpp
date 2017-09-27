@@ -22,14 +22,16 @@ ArmInterface::ArmInterface():
     _pickup_client("/pickup", true),
     _place_client("/place", true),
     _rnd_gen(),
-    _ready(false)
+    _spinner_thread(0),
+    _ready(false),
+    _spin(true)
 {
     // init local NodeHandle
     _nh.setCallbackQueue(&_cbq);
     moveit::planning_interface::MoveGroup::Options opt("arm", "robot_description", _nh);
     _move_group = new moveit::planning_interface::MoveGroup(opt);
     _move_group->setPoseReferenceFrame("base_link");
-    boost::thread server_thread(&ArmInterface::spinner_thread, this);
+    _spinner_thread = new boost::thread(&ArmInterface::start_spinner, this);
 
     // init gripper client
     while(ros::ok() && !_gripper_client.waitForServer() && !_pickup_client.waitForServer() && !_place_client.waitForServer()){
@@ -39,9 +41,13 @@ ArmInterface::ArmInterface():
     _ready = true;
 }
 
-void ArmInterface::spinner_thread(){
-    while(ros::ok)
+void ArmInterface::start_spinner(){
+    while(_spin && ros::ok)
         _cbq.callAvailable(ros::WallDuration(0));
+}
+
+void ArmInterface::stop_spinner(){
+    _spin = false;
 }
 
 bool ArmInterface::plan_to_xyz(moveit::planning_interface::MoveGroup::Plan &plan, double x, double y, double z){
@@ -525,5 +531,10 @@ void ArmInterface::push_button(const geometry_msgs::Pose &pose){
 
 ArmInterface::~ArmInterface()
 {
+    // stop spinner thread
+    stop_spinner();
+    _spinner_thread->join();
+
+    delete _spinner_thread;
     delete _move_group;
 }

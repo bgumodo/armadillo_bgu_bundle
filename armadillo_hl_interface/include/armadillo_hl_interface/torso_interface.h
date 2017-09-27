@@ -45,6 +45,8 @@ class TorsoInterface{
 
         TorsoClient _torso_client;
         boost::atomic<bool> _ready;
+        boost::thread *_server_thread;
+        TorsoServer *_server;
 
         double height_validation(double height);
         void start_server();

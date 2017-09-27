@@ -94,10 +94,12 @@ DriverInterface::DriverInterface():
     _tf_broadcaster(),
     _cm_interface("global_costmap", _tf_listener),
     _cm_model(*_cm_interface.getCostmap()),
-    _dest_map()
+    _dest_map(),
+    _sd_server(0),
+    _sd_thread(0)
     {
     // start simple-driver server
-    boost::thread sd_thread(&DriverInterface::start_sd_server, this);
+    _sd_thread = new boost::thread(&DriverInterface::start_sd_server, this);
 
     // wait for both servers to come-up
     ros::Duration w(1.0);
@@ -147,7 +149,7 @@ void DriverInterface::import_dest_map(const std::string filename){
 
 void DriverInterface::start_sd_server(){
     ROS_INFO("starting simple-driver server...");
-    SimpleDriverServer sd_server;
+    _sd_server =  new SimpleDriverServer();
 }
 
 bool DriverInterface::pose_blocked(const geometry_msgs::Pose &pose){
@@ -426,5 +428,10 @@ double DriverInterface::distance_from(const geometry_msgs::Pose &other){
 }
 
 DriverInterface::~DriverInterface(){
+    // stop sd_server
+    _sd_server->stop_server();
+    _sd_thread->join();
 
+    delete _sd_server;
+    delete _sd_thread;
 }

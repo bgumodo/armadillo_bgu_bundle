@@ -82,10 +82,12 @@ TorsoServer::~TorsoServer(){
 
 TorsoInterface::TorsoInterface():
     _torso_client("torso", true),
-    _ready(false)
+    _ready(false),
+    _server_thread(0),
+    _server(0)
 {
     // start server thread
-    boost::thread server_thread(&TorsoInterface::start_server, this);
+    _server_thread = new boost::thread(&TorsoInterface::start_server, this);
 
     // wait for server to come-up
     ros::Duration w(1.0);
@@ -100,7 +102,7 @@ TorsoInterface::TorsoInterface():
 
 void TorsoInterface::start_server(){
     ROS_INFO("starting torso action-server...");
-    TorsoServer server;
+    _server = new TorsoServer();
 }
 
 double TorsoInterface::height_validation(double height){
@@ -173,5 +175,10 @@ void TorsoInterface::move(const CallbackBool callback, double height){
 }
 
 TorsoInterface::~TorsoInterface(){
-    
+    // stop server thread
+    _server->stop_server();
+    _server_thread->join();
+
+    delete _server_thread;
+    delete _server;
 }
