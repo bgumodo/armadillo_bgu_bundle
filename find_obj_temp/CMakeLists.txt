@@ -21,6 +21,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(find_obj_temp src/find_object.cpp)
+add_executable(find_obj_temp src/find_object.cpp src/tinyxml2.cpp)
 
 target_link_libraries(find_obj_temp ${catkin_LIBRARIES})

@@ -10,7 +10,7 @@
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryGoal.h>
 
-
+// this class is used for moving the robot's head (kinect2 cam)
 class HeadInterface{
     private:
         typedef actionlib::SimpleActionClient<pr2_controllers_msgs::PointHeadAction> PointHeadClient;
@@ -32,14 +32,18 @@ class HeadInterface{
         HeadInterface();
 
         // point relative to map
+        // pose := object pose for robot to look at
+        // vel := motion velocity (speed)
         bool move_head_block(const geometry_msgs::Pose &pose, double vel=1.0);
         void move_head(const geometry_msgs::Pose &pose, double vel=1.0);
-        void move_head(const CallbackBool callback, const geometry_msgs::Pose &pose, double vel=1.0);
+        void move_head(const CallbackBool callback, const geometry_msgs::Pose &pose, double vel=1.0); // void callback(bool success){...}
 
         // point relative to robot
+        // pan/tilt := head orientation relative to the robot's body
+        // vel := motion velocity (speed)
         bool move_head_block(double pan, double tilt, double vel=1.0);
         void move_head(double pan, double tilt, double vel=1.0);
-        void move_head(const CallbackBool callback, double pan, double tilt, double vel=1.0);
+        void move_head(const CallbackBool callback, double pan, double tilt, double vel=1.0); // void callback(bool success){...}
 
         // cancel head motion
         void stop();

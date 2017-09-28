@@ -6,6 +6,7 @@
 #include <armadillo_hl_interface/TextToSpeechGoal.h>
 #include <armadillo_hl_interface/TextToSpeechAction.h>
 
+// a wrapper for a SimpleActionServer which handles the speech-to-text action
 class S2TServer{
     private:
         typedef actionlib::SimpleActionServer<armadillo_hl_interface::SpeechToTextAction> S2TActionServer;
@@ -27,6 +28,7 @@ class S2TServer{
         ~S2TServer();
 };
 
+// a wrapper for a SimpleActionServer which handles the text-to-speech action
 class T2SServer{
     private:
         typedef actionlib::SimpleActionServer<armadillo_hl_interface::TextToSpeechAction> T2SActionServer;
@@ -46,7 +48,8 @@ class T2SServer{
         ~T2SServer();
 };
 
-
+// this class is used to handle speech-to-text (someone speaks to robot) and text-to-speech (robot speaks to someone).
+// requires a running node to run speech libreries (current: run .../armadillo_bgu_bundle/speech/voice_recognition.py using python3)
 class SpeechInterface{
     private:
         typedef actionlib::SimpleActionClient<armadillo_hl_interface::SpeechToTextAction> S2TClient;
@@ -73,13 +76,15 @@ class SpeechInterface{
     public:
         SpeechInterface();
 
+        // speech-to-text action
+        // TODO: implement timeout!
         bool speech_to_text_block(int timeout, std::string &text);
-        void speech_to_text(int timeout, CallbackSpeech callback);
+        void speech_to_text(int timeout, CallbackSpeech callback); // void callback(bool success, std::string speech){...}
 
-        // TODO: resolve issues with text-to-speech
+        // text-to-speech action
         bool text_to_speech_block(const std::string &text);
         void text_to_speech(const std::string &text);
-        void text_to_speech(CallbackBool callback, const std::string &text);
+        void text_to_speech(CallbackBool callback, const std::string &text); // void callback(bool success){...}
 
         ~SpeechInterface();
 

@@ -14,7 +14,7 @@ TorsoServer::TorsoServer():
     _nh(),
     _torso_server(0),
     _tf_listener(),
-    _active(false)
+    _active(true)
 {
     // init local NodeHandle
     _nh.setCallbackQueue(&_cbq);
@@ -27,7 +27,6 @@ TorsoServer::TorsoServer():
     _torso_server->start();
 
     // spin server
-    _active = true;
     while(_active && ros::ok()){
         _cbq.callAvailable(ros::WallDuration(0));
     }

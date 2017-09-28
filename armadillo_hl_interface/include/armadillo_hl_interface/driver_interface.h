@@ -18,6 +18,7 @@
 
 #define NUM_OF_SAMPLING_POINTS 32
 
+// a wrapper for a SimpleActionServer which is used for simple driving commands (that is- without move_base)
 class SimpleDriverServer{
     private:
         typedef actionlib::SimpleActionServer<armadillo_hl_interface::SimpleDriverAction> ActionServer;
@@ -37,6 +38,7 @@ class SimpleDriverServer{
         ~SimpleDriverServer();
 };
 
+// this class is used for driving the robot
 class DriverInterface{
      private:
         typedef move_base_msgs::MoveBaseGoal DIGoal;
@@ -90,7 +92,7 @@ class DriverInterface{
         void drive(geometry_msgs::Pose &object, double radius=0, double theta=ANGLE_NEAREST);
         void drive(const CallbackBool callback, geometry_msgs::Pose &object, double radius=0, double theta=ANGLE_NEAREST);
         
-        // drive using premade dict
+        // drive to a fixed location loaded from the dictionary
         bool drive_block(const std::string &destination);
         void drive(const std::string &destination);
         void drive(const CallbackBool callback, const std::string &destination);
@@ -100,9 +102,11 @@ class DriverInterface{
         void drive(double dist, double z, double vel=0.2);
         void drive(const CallbackBool callback, double dist, double z, double vel);
 
+        // stop robot motion
         void stop();
-        bool is_ready();
-        // TODO: implement this!
+
+        // TODO: implement these!
+        geometry_msgs::Pose get_current_location();
         double distance_from(const geometry_msgs::Pose &other); 
 
         ~DriverInterface();

@@ -418,8 +418,10 @@ void DriverInterface::stop(){
     _sd_client.cancelAllGoals();
 }
 
-bool DriverInterface::is_ready(){
-    return _ready == true;
+// TODO: implement this!
+geometry_msgs::Pose DriverInterface::get_current_location(){
+    geometry_msgs::Pose pose;
+    return pose;
 }
 
 // TODO: implement this!

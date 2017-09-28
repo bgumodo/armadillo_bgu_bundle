@@ -162,7 +162,7 @@ bool run_script1(){
 }
 
 bool run_script2(){
-    // place cofee in place for script2
+    // place coffee in place for script2
     init_coffee();
 
     // find can

@@ -18,6 +18,8 @@
 #include <geometry_msgs/Pose.h>
 #include <shape_msgs/SolidPrimitive.h>
 
+#include <tinyxml2/tinyxml2.h>
+
 struct objrec{
     int h_low;
     int s_low;
