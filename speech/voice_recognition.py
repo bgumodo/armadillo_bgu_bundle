@@ -19,6 +19,7 @@ import pyttsx3
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
 from armadillo_hl_interface.srv import TextToSpeech
+from tts import tts
 
 import rospy
 
@@ -221,14 +222,16 @@ def run_speech_to_text(ignore_me):
 
 
 def run_text_to_speech(req):
-    #bing = BingSpeechAPI()
-    #bing.text_to_speech(text='Can I have some coffee?')
-    
-    engine = pyttsx3.init()
-    engine.setProperty('rate',90)  #90 words per minute
-    engine.setProperty('volume',0.9) 
-    engine.say(req.text)
-    engine.runAndWait()
+    # bing = BingSpeechAPI()
+    # bing.text_to_speech(text='Can I have some coffee?')
+
+    tts(req.text)
+    #
+    # engine = pyttsx3.init()
+    # engine.setProperty('rate',90)  #90 words per minute
+    # engine.setProperty('volume',0.9)
+    # engine.say(req.text)
+    # engine.runAndWait()
     
     return True
 
