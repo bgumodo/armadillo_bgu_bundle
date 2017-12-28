@@ -32,7 +32,7 @@ def processRequest(data):
 
     while True:
 
-        response = requests.request('post', _url, json=json, data=data, headers=headers, params=params)
+        response = requests.request('post', _url, data=data, headers=headers, params=params)
 
         if response.status_code == 429:
 
@@ -66,11 +66,11 @@ def processRequest(data):
 
 
 # Load raw image file into memory
-pathToFileInDisk = 'sample_image.jpg'
-with open(pathToFileInDisk, 'rb') as f:
-    data = f.read()
-
-result = processRequest(data)
-
-if result is not None:
-    print(result['description']['captions'][0]['text'])
+# pathToFileInDisk = 'sample_image.jpg'
+# with open(pathToFileInDisk, 'rb') as f:
+#     data = f.read()
+#
+# result = processRequest(data)
+#
+# if result is not None:
+#     print(result['description']['captions'][0]['text'])
