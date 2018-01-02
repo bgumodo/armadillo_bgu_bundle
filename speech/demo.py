@@ -36,7 +36,9 @@ def image_callback(data):
 
 def caption_image():
     rospy.init_node('imgcap')
-    rospy.Subscriber("/kinect2/qhd/image_color", SensorImage, image_callback)
+   # rospy.Subscriber("kinect2/qhd/image_color", SensorImage, image_callback)
+    rospy.Subscriber("/front_camera/image_raw", SensorImage, image_callback)
+
     print "Demo is ready"
     rospy.spin()
 
