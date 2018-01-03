@@ -1,11 +1,13 @@
 from __future__ import print_function
 
+import os
 import requests
 import json
 from StringIO import StringIO
 
-_url = 'http://csdlsrv1:8383'
+_url = os.getenv('VISION_SERVER', '')
 _maxNumRetries = 10
+
 
 def processRequest(data):
     params = dict()

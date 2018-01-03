@@ -5,7 +5,7 @@ import rospy
 from PIL import Image
 from sensor_msgs.msg import Image as SensorImage
 
-from scene_description import processRequest
+from objects_detection import processRequest
 from tts import tts
 
 done = False
@@ -27,17 +27,15 @@ def image_callback(data):
             data = f.read()
 
         result = processRequest(data)
+        print(result)
 
-        if result is not None:
-            description = result['description']['captions'][0]['text']
-            print(description)
-            tts(description)
+        tts('I see ' + result['objects_string'])
 
 
 def caption_image():
     rospy.init_node('imgcap')
-   # rospy.Subscriber("kinect2/qhd/image_color", SensorImage, image_callback)
-    rospy.Subscriber("/front_camera/image_raw", SensorImage, image_callback)
+    rospy.Subscriber("kinect2/qhd/image_color", SensorImage, image_callback)
+    # rospy.Subscriber("/front_camera/image_raw", SensorImage, image_callback)
 
     print "Demo is ready"
     rospy.spin()

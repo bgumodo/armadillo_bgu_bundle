@@ -1,4 +1,5 @@
-# pip install git+https://github.com/westparkcom/Python-Bing-TTS.git
+# sudo pip install git+https://github.com/westparkcom/Python-Bing-TTS.git
+# sudo apt-get install python-pyaudio python3-pyaudio
 
 import os
 from bingtts import Translator
