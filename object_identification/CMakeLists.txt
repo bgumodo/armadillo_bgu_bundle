@@ -1,7 +1,7 @@
 #
 cmake_minimum_required(VERSION 2.8.3)
 project(object_identification)
-
+add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
         roscpp
         std_msgs
@@ -20,17 +20,19 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(gazebo REQUIRED)
 
 ## Generate messages in the 'msg' folder
+add_service_files(
+  FILES
+  find_obj.srv
+  switch_topic.srv
+  
+)
 add_message_files(
   FILES
   find_results.msg
 )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  switch_topic.srv
-  find_obj.srv
-)
+
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
@@ -38,6 +40,7 @@ generate_messages(
    std_msgs
    geometry_msgs
  )
+
 
 #
 catkin_package(

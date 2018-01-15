@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(armadillo_hl_interface)
+add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
@@ -72,3 +73,8 @@ add_executable(testing
   
 
 target_link_libraries(robot_testing ${catkin_LIBRARIES})
+
+add_dependencies( speech_pub ${PROJECT_NAME}_generate_messages_cpp )
+add_dependencies( drive_and_pick_speech ${PROJECT_NAME}_generate_messages_cpp )
+add_dependencies(testing ${PROJECT_NAME}_generate_messages_cpp )
+add_dependencies(robot_testing ${PROJECT_NAME}_generate_messages_cpp )

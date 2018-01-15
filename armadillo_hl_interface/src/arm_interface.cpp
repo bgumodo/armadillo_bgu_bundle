@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <armadillo_hl_interface/arm_interface.h>
 #include <control_msgs/GripperCommandGoal.h>
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/random.hpp>
@@ -28,59 +28,93 @@ ArmInterface::ArmInterface():
 {
     // init local NodeHandle
     _nh.setCallbackQueue(&_cbq);
-    moveit::planning_interface::MoveGroup::Options opt("arm", "robot_description", _nh);
-    _move_group = new moveit::planning_interface::MoveGroup(opt);
+
+    /**opt stucture.
+	*@param: create an options "opt" with Group: "arm"
+	*@param: "robot_description" is fixed, which says the location of URDF
+	*@param: and a nodehandler.
+	**/
+    moveit::planning_interface::MoveGroupInterface::Options opt("arm", "robot_description", _nh);
+
+    //MoveGroupInterface instance, init with opt that was created above ^
+    _move_group = new moveit::planning_interface::MoveGroupInterface(opt);
+
+    //set the move_group reference as base_link.
     _move_group->setPoseReferenceFrame("base_link");
+
+    //create a new thread, with start_spinner function, so its running in the same time that this code is running,
     _spinner_thread = new boost::thread(&ArmInterface::start_spinner, this);
 
-    // init gripper client
+    //if one of the servers didnt come up yet, wait for it. (this doesnt happen usually)
     while(ros::ok() && !_gripper_client.waitForServer() && !_pickup_client.waitForServer() && !_place_client.waitForServer()){
         ROS_INFO("waiting for arm control servers...");
         ros::Duration w(1.0);
     }
+	//indicate that ArmInterface is ready and all the servers are up.
     _ready = true;
 }
-
+/**
+*call all the callback in the callbackqueue.
+*this spins in a seperated thread, while the code is running.
+**/
 void ArmInterface::start_spinner(){
     while(_spin && ros::ok)
         _cbq.callAvailable(ros::WallDuration(0));
 }
-
+/**
+* stops the spinner and the other thread
+* only when distrctor is called
+**/
 void ArmInterface::stop_spinner(){
     _spin = false;
 }
 
-bool ArmInterface::plan_to_xyz(moveit::planning_interface::MoveGroup::Plan &plan, double x, double y, double z){
+/**
+*
+*@param: an empty plan to plan too.
+*@param: x,y,z to send to moveit to create a plan.
+*@return: true if succeeded, false otherwise.
+**/
+bool ArmInterface::plan_to_xyz(moveit::planning_interface::MoveGroupInterface::Plan &plan, double x, double y, double z){
     // build goal
     geometry_msgs::Pose p;
 
     // set position
     p.position.x = x;
-    p.position.y=  y;
+    p.position.y = y;
     p.position.z = z;
     
-    // set orientation
-    tf::Quaternion q;
-    q.setRPY(atan2(y, x), 0.0, 0.0);
-    p.orientation.x = q.x();
-    p.orientation.y = q.y();
-    p.orientation.z = q.z();
-    p.orientation.w = q.w();
+   	//general orientation- in front of the robot
+    tf::Quaternion orientation;
+	//calculate quaternion from the x,y position.
+    orientation.setRPY(atan2(y, x), 0.0, 0.0);
+	//set the calculated orientation to the pose.
+    p.orientation.x = orientation.x();
+    p.orientation.y = orientation.y();
+    p.orientation.z = orientation.z();
+    p.orientation.w = orientation.w();
 
-    // plan to goal
+    //plan to goal (_move_group is moveit::planning_interface::MoveGroupInterface)
     _move_group->setPoseTarget(p);
-    return _move_group->plan(plan);
+    _move_group->plan(plan);
+	return true;
 }
 
-bool ArmInterface::plan_to_pose(moveit::planning_interface::MoveGroup::Plan &plan, const geometry_msgs::Pose &pose){
+/**
+*recives a pose and an empty plan. with moveit! plan to that pose and put it in the plan.
+*@param plan an empty plan.  
+*@param pose
+**/
+bool ArmInterface::plan_to_pose(moveit::planning_interface::MoveGroupInterface::Plan &plan, const geometry_msgs::Pose &pose){
     // transform from map to robot axis
     tf::StampedTransform arm_tf;
+	//put the transform from map to robot axis in arm_tf
     _tf_listener.lookupTransform("base_link", "map", ros::Time(0), arm_tf);
     tf::Vector3 position(pose.position.x, pose.position.y, pose.position.z);
     position = arm_tf * position;
-
     // general orientation- in front of the robot
     tf::Quaternion orientation;
+    //calculate quaternion from the x,y position.
     orientation.setRPY(atan2(position.y(), position.x()), 0.0, 0.0);
 
     // build goal
@@ -97,7 +131,8 @@ bool ArmInterface::plan_to_pose(moveit::planning_interface::MoveGroup::Plan &pla
     
     // plan to goal
     _move_group->setPoseTarget(p);
-    return _move_group->plan(plan);
+    _move_group->plan(plan);
+	return true;
 }
 
 void ArmInterface::move(double x, double y, double z){
@@ -107,7 +142,7 @@ void ArmInterface::move(double x, double y, double z){
     }
 
     ROS_INFO("planning to pose...");
-    moveit::planning_interface::MoveGroup::Plan plan;
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
     if(plan_to_xyz(plan, x, y, z))
         _move_group->asyncExecute(plan);
     else
@@ -121,9 +156,11 @@ bool ArmInterface::move_block(double x, double y, double z){
     }
 
     ROS_INFO("planning to pose...");
-    moveit::planning_interface::MoveGroup::Plan plan;
-    if(plan_to_xyz(plan, x, y, z))
-        return _move_group->execute(plan);
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
+    if(plan_to_xyz(plan, x, y, z)){
+       _move_group->execute(plan);
+		return true;
+	}
     else
         ROS_WARN("can't plan to pose!");
     return false;
@@ -135,7 +172,7 @@ void ArmInterface::move(const geometry_msgs::Pose &pose){
         return;
     }
 
-    moveit::planning_interface::MoveGroup::Plan plan;
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
     ROS_INFO("planning to pose...");
     if(plan_to_pose(plan, pose))
         _move_group->asyncExecute(plan);
@@ -149,10 +186,12 @@ bool ArmInterface::move_block(const geometry_msgs::Pose &pose){
         return false;
     }
 
-    moveit::planning_interface::MoveGroup::Plan plan;
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
     ROS_INFO("planning to pose...");
-    if(plan_to_pose(plan, pose))
-        return _move_group->execute(plan);
+    if(plan_to_pose(plan, pose)){
+        _move_group->execute(plan);
+		return  true;
+}
     else
         ROS_WARN("can't plan to pose!");
     return false;
@@ -164,7 +203,7 @@ void ArmInterface::move(const std::string &pose){
         return;
     }
 
-    moveit::planning_interface::MoveGroup::Plan plan;
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
     ROS_INFO("planning to pose...");
     _move_group->setNamedTarget(pose);
     if(_move_group->plan(plan))
@@ -179,11 +218,13 @@ bool ArmInterface::move_block(const std::string &pose){
         return false;
     }
 
-    moveit::planning_interface::MoveGroup::Plan plan;
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
     ROS_INFO("planning to pose...");
     _move_group->setNamedTarget(pose);
-    if(_move_group->plan(plan))
-        return _move_group->execute(plan);
+    if(_move_group->plan(plan)){
+        _move_group->execute(plan);
+		return true;
+	}
     else
         ROS_WARN("can't plan to pose!");
     return false;
@@ -248,7 +289,7 @@ void ArmInterface::move_gripper(CallbackBool callback, double position, double f
     control_msgs::GripperCommandGoal goal;
     goal.command.position = position;
     goal.command.max_effort = force;
-    _gripper_client.sendGoal(goal, boost::bind(&ArmInterface::generic_done_callback, boost::ref(this), callback, _1));
+    _gripper_client.sendGoal(goal, boost::bind(&ArmInterface::generic_done_callback, this, callback, _1));
 }
 
 void ArmInterface::open_gripper(double force){
@@ -479,7 +520,7 @@ bool ArmInterface::move_to_cartesian(const geometry_msgs::Pose &pose){
     if(fraction < 0)
         return false;
 
-    moveit::planning_interface::MoveGroup::Plan plan;
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
     plan.trajectory_ = trajectory;
     _move_group->setStartStateToCurrentState();
     _move_group->execute(plan);

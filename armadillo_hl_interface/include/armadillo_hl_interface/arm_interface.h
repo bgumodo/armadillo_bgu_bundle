@@ -6,7 +6,8 @@
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/GripperCommandAction.h>
 #include <geometry_msgs/Pose.h>
-#include <moveit/move_group_interface/move_group.h>
+
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
 #include <moveit_msgs/PickupGoal.h>
@@ -30,7 +31,7 @@ class ArmInterface{
         ros::CallbackQueue _cbq;
         ros::NodeHandle _nh;
         tf::TransformListener _tf_listener;
-        moveit::planning_interface::MoveGroup *_move_group;
+        moveit::planning_interface::MoveGroupInterface *_move_group;
         GripperClient _gripper_client;
         PickupClient _pickup_client;
         PlaceClient _place_client;
@@ -44,8 +45,8 @@ class ArmInterface{
         void stop_spinner();
         double gripper_validation(double val);
 
-        bool plan_to_xyz(moveit::planning_interface::MoveGroup::Plan &plan, double x, double y, double z);
-        bool plan_to_pose(moveit::planning_interface::MoveGroup::Plan &plan, const geometry_msgs::Pose &pose);
+        bool plan_to_xyz(moveit::planning_interface::MoveGroupInterface::Plan &plan, double x, double y, double z);
+        bool plan_to_pose(moveit::planning_interface::MoveGroupInterface::Plan &plan, const geometry_msgs::Pose &pose);
 
         moveit_msgs::PickupGoal build_pickup_goal(const std::string &object, const geometry_msgs::Pose &pose, double sigma=0);
         moveit_msgs::PlaceGoal build_place_goal(const std::string &object, const geometry_msgs::Pose &pose);

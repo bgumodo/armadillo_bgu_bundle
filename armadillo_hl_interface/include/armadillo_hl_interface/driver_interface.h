@@ -81,9 +81,9 @@ class DriverInterface{
 
 
     public:
-        const static double ANGLE_NEAREST = -1.0;
-        const static double ANGLE_FRONT = 0.0;
-        const static double ANGLE_BACK = M_PI;
+        static const double ANGLE_NEAREST = -1.0;
+        static const double ANGLE_FRONT = 0.0;
+        static const double ANGLE_BACK = M_PI;
 
         DriverInterface();
 

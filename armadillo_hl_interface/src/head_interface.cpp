@@ -117,7 +117,7 @@ void HeadInterface::move_head(const CallbackBool callback, double pan, double ti
     }
 
     PTGoal goal = pan_tilt_to_goal(pan, tilt, vel);
-    _pan_tilt_client.sendGoal(goal, boost::bind(&HeadInterface::generic_done_callback, boost::ref(this), callback, _1));
+    _pan_tilt_client.sendGoal(goal, boost::bind(&HeadInterface::generic_done_callback,this, callback, _1));
 }
 
 void HeadInterface::move_head(const CallbackBool callback, const geometry_msgs::Pose &pose, double vel){
@@ -125,7 +125,7 @@ void HeadInterface::move_head(const CallbackBool callback, const geometry_msgs::
         ROS_ERROR("HeadInterface is not ready!");
     else{
         HIGoal goal = pose_to_goal(pose, vel);
-        _point_head_client.sendGoal(goal, boost::bind(&HeadInterface::generic_done_callback, boost::ref(this), callback, _1));
+        _point_head_client.sendGoal(goal, boost::bind(&HeadInterface::generic_done_callback,this, callback, _1));
     }
 }
 
