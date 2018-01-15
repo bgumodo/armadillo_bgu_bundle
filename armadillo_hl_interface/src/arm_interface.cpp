@@ -2,6 +2,7 @@
 #include <armadillo_hl_interface/arm_interface.h>
 #include <control_msgs/GripperCommandGoal.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/random.hpp>

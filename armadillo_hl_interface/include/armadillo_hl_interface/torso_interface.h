@@ -53,8 +53,8 @@ class TorsoInterface{
         void generic_done_callback(const CallbackBool f, const GoalState &state);
 
     public:
-        static const float MIN_HEIGHT = MIN_HEIGHT_TORSO;
-        static const float MAX_HEIGHT = MAX_HEIGHT_TORSO;
+        static constexpr float MIN_HEIGHT = MIN_HEIGHT_TORSO;
+        static constexpr float MAX_HEIGHT = MAX_HEIGHT_TORSO;
 
         TorsoInterface();
 

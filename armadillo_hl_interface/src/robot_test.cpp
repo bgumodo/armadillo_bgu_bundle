@@ -14,64 +14,49 @@ DriverInterface *di;
 TorsoInterface *ti;
 ArmInterface *ai;
 SpeechInterface *si;
-ObjectHandler *oh;
+
+
 
 bool lookup(geometry_msgs::Pose &pose, std::string object){
-    hi->move_head_block(1.0, 0.0);
-    ros::Duration(1.0).sleep(); // wait for head to stop moving
-    if(oh->find_object_block(pose, object))
-        return true;
-
-    hi->move_head_block(0.0, 0.0);
-    ros::Duration(1.0).sleep(); // wait for head to stop moving
-    if(oh->find_object_block(pose, object))
-        return true;
-
-    hi->move_head_block(-1.0, 0.0);
-    ros::Duration(1.0).sleep(); // wait for head to stop moving
-    if(oh->find_object_block(pose, object))
-        return true;
-
     return false;
 }
 
 bool run_script(){
-    // wait for a coffee request
-    std::string talk;
-    do{
-        ROS_INFO("listening...");
-        si->text_to_speech_block("What should I get you?");
-        si->speech_to_text_block(10, talk);
-        ROS_INFO_STREAM("got: '" << talk << "'");
-        si->text_to_speech_block("I got " + talk);
-    } while(talk != "Coffee.");
+	//tf::TransformListener::lookupTransform("map","base_footprint");
+	ROS_INFO("in script");
+	geometry_msgs::Pose pose;
+	pose.position.x = 2;
+	pose.position.y = 1;
+	pose.position.z = 0;
 
-    ai->move_block("pre_grasp3"); // move arm back to driving position
-    ros::Duration(2.0).sleep();
+    pose.orientation.x = 1;
+    pose.orientation.y = 1;	
+	pose.orientation.z = 90;
+	pose.orientation.w = 3;
 
-    geometry_msgs::Pose pose;
-    if(!lookup(pose, "can_real")){
-        si->text_to_speech_block("I can't find the coffee.");
-        return false;
-    }
+	ROS_INFO("driving");
+	di->drive(pose);
+	ros::Duration(5.0).sleep();
+	
+	di->stop();	
+	
+	ROS_INFO("looking");
+	hi->move_head_block(0.5,1);
+	ros::Duration(5.0).sleep();
 
-    si->text_to_speech_block("I've found the coffee.");
-    hi->move_head(0.0, 0.0);
+	ROS_INFO("moving up");
+	ti->move_block(0.36);
+	ros::Duration(5.0).sleep();
 
-    di->drive_block(pose, 0.4);
-    
-    // look again to refine location
-    hi->move_head_block(0.0, 0.5);
-    if(!oh->find_object_block(pose, "can_real", ObjectHandler::HEAD_CAM))
-        return false;
+	ROS_INFO("moving down");
+	ti->move_block(0.1);
+	ros::Duration(5.0).sleep();
+	
 
-    // pickup can
-    if(!ai->pickup_block("can_real", pose))
-        return false;
 
-    if(!ai->place_block("can_real", pose))
-        return false;
-        
+
+	
+
     return true;
 }
 
@@ -79,31 +64,35 @@ int main(int argc, char **argv){
     // init node
     ros::init(argc, argv, "test_node");
     ros::NodeHandle nh;
-
+	ROS_INFO("initing");
     // init interfaces
     HeadInterface l_hi;
+	ROS_INFO("after HI");
     DriverInterface l_di;
+	ROS_INFO("after DI");
     TorsoInterface l_ti;
+	ROS_INFO("after TI");
     ArmInterface l_ai;
+	ROS_INFO("after AI");
     SpeechInterface l_si;
-    ObjectHandler l_oh;
-
+	ROS_INFO("after SI");
     // make them global
     hi = &l_hi;
     di = &l_di;
     ti = &l_ti;
     ai = &l_ai;
     si = &l_si;
-    oh = &l_oh;
+	ROS_INFO("after global");
     
-    // some time to setup eveything
+    // some time to setup everything
     // NOW START SPEECH NODE WITH PYTHON!
-    ros::Duration(5.0).sleep();
+    ros::Duration(3.0).sleep();
 
     // start script
     ROS_INFO("all ready! starting script...");
 
     // here you can set the script number
+	
     if(run_script())
         ROS_INFO("success!");
     else
@@ -111,4 +100,7 @@ int main(int argc, char **argv){
 
     ros::spin();
     return 0;
+
+    
+
 }

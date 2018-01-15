@@ -11,13 +11,16 @@ HeadInterface::HeadInterface():
     _point_head_client("/pan_tilt_trajectory_controller/point_head_action", true),
     _pan_tilt_client("/pan_tilt_trajectory_controller/follow_joint_trajectory", true)
 {
-
+	ROS_INFO("Starting Head Interface.");	
     // wait for action serveres
     ros::Duration w(1.0);
-    while(!_point_head_client.waitForServer() && !_pan_tilt_client.waitForServer() && ros::ok()){
+	ros::Duration w1(4.0);
+	
+    while(!_point_head_client.waitForServer(w1) && !_pan_tilt_client.waitForServer(w1) && ros::ok()){
         ROS_INFO("waiting for action servers...");
         w.sleep();
     }
+	ROS_INFO("1");
     _ready = true;
 }
 

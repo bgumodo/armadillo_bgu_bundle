@@ -26,7 +26,7 @@ S2TServer::S2TServer():
     ros::Subscriber s2t_pub = _nh.subscribe("speech_text", 10, &S2TServer::s2t_listener, this);
 
     // start server
-    _s2t_server = new S2TActionServer(_nh, "speech_to_text_action", boost::bind(&S2TServer::s2t_callback, boost::ref(this), _1), false);
+    _s2t_server = new S2TActionServer(_nh, "speech_to_text_action", boost::bind(&S2TServer::s2t_callback, this, _1), false);
     _s2t_server->start();
     
     // spin server
@@ -96,7 +96,7 @@ T2SServer::T2SServer():
     _nh.setCallbackQueue(&_cbq);
 
     // start server
-    _t2s_server = new T2SActionServer(_nh, "text_to_speech_action", boost::bind(&T2SServer::t2s_callback, boost::ref(this), _1), false);
+    _t2s_server = new T2SActionServer(_nh, "text_to_speech_action", boost::bind(&T2SServer::t2s_callback,this, _1), false);
     _t2s_server->start();
     
     // spin server
@@ -193,7 +193,7 @@ void SpeechInterface::speech_to_text(int timeout, CallbackSpeech callback){
     // send goal to action serevr
     S2TGoal goal;
     goal.timeout = timeout;
-    _s2t_client.sendGoal(goal, boost::bind(&SpeechInterface::generic_speech_callback, boost::ref(this), callback, _1, _2));
+    _s2t_client.sendGoal(goal, boost::bind(&SpeechInterface::generic_speech_callback,this, callback, _1, _2));
 }
 
 bool SpeechInterface::text_to_speech_block(const std::string &text){
@@ -235,7 +235,7 @@ void SpeechInterface::text_to_speech(CallbackBool callback, const std::string &t
     // send goal to action serevr
     T2SGoal goal;
     goal.text = text;
-    _t2s_client.sendGoal(goal, boost::bind(&SpeechInterface::generic_done_callback, boost::ref(this), callback, _1));
+    _t2s_client.sendGoal(goal, boost::bind(&SpeechInterface::generic_done_callback, this, callback, _1));
 }
 
 void SpeechInterface::start_s2t_server(){

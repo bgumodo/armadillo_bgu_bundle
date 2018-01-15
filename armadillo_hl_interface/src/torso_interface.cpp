@@ -18,14 +18,11 @@ TorsoServer::TorsoServer():
 {
     // init local NodeHandle
     _nh.setCallbackQueue(&_cbq);
-
     // init publiser
     _pub = _nh.advertise<std_msgs::Float64>("/torso_controller/command", 100);
-
     // start server
-    _torso_server = new ActionServer(_nh, "torso", boost::bind(&TorsoServer::callback, boost::ref(this), _1), false);
+    _torso_server = new ActionServer(_nh, "torso", boost::bind(&TorsoServer::callback,this, _1), false);
     _torso_server->start();
-
     // spin server
     while(_active && ros::ok()){
         _cbq.callAvailable(ros::WallDuration(0));
@@ -170,7 +167,7 @@ void TorsoInterface::move(const CallbackBool callback, double height){
     // send goal to action server
     TGoal goal;
     goal.height = height;
-    _torso_client.sendGoal(goal, boost::bind(&TorsoInterface::generic_done_callback, boost::ref(this), callback, _1));
+    _torso_client.sendGoal(goal, boost::bind(&TorsoInterface::generic_done_callback,this, callback, _1));
 }
 
 TorsoInterface::~TorsoInterface(){

@@ -30,7 +30,7 @@ SimpleDriverServer::SimpleDriverServer():
     _nh.setCallbackQueue(&_cbq);
     _pub = _nh.advertise<geometry_msgs::Twist>("cmd_vel", 100);
     _tf_listener.waitForTransform("base_footprint", "odom", ros::Time(0), ros::Duration(5.0));
-    _action_server = new ActionServer(_nh, "simple_driver", boost::bind(&SimpleDriverServer::callback, boost::ref(this), _1), false);
+    _action_server = new ActionServer(_nh, "simple_driver", boost::bind(&SimpleDriverServer::callback,this, _1), false);
     _action_server->start();
 
     // spin local queue
@@ -308,7 +308,7 @@ void DriverInterface::drive(const CallbackBool callback, geometry_msgs::Pose &ob
         return;
     }
 
-    _mb_client.sendGoal(goal, boost::bind(&DriverInterface::generic_done_callback, boost::ref(this), callback, _1));
+    _mb_client.sendGoal(goal, boost::bind(&DriverInterface::generic_done_callback, this, callback, _1));
 }
 
 bool DriverInterface::drive_block(double dist, double z, double vel){
@@ -348,7 +348,7 @@ void DriverInterface::drive(const CallbackBool callback, double dist, double z, 
     goal.cmd.linear.x = vel;
     goal.cmd.angular.z = z;
     goal.distance = dist;
-    _sd_client.sendGoal(goal, boost::bind(&DriverInterface::generic_done_callback, boost::ref(this), callback, _1));
+    _sd_client.sendGoal(goal, boost::bind(&DriverInterface::generic_done_callback, this, callback, _1));
 }
 
 bool DriverInterface::drive_block(const std::string &destination){
@@ -410,7 +410,7 @@ void DriverInterface::drive(const CallbackBool callback, const std::string &dest
 	DIGoal goal;
     build_digoal(goal, obj, 0, 0);
 
-    _mb_client.sendGoal(goal, boost::bind(&DriverInterface::generic_done_callback, boost::ref(this), callback, _1));
+    _mb_client.sendGoal(goal, boost::bind(&DriverInterface::generic_done_callback,this, callback, _1));
 }
 
 void DriverInterface::stop(){

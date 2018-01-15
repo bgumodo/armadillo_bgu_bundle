@@ -46,8 +46,6 @@ src/speech_pub.cpp
 src/speech_interface.cpp)
 target_link_libraries(speech_pub ${catkin_LIBRARIES})
 
-add_executable(drive_and_pick_speech src/drive_and_pick_speech.cpp)
-target_link_libraries(drive_and_pick_speech ${catkin_LIBRARIES})
 
 add_executable(testing
   src/fsm.cpp
@@ -75,6 +73,5 @@ add_executable(testing
 target_link_libraries(robot_testing ${catkin_LIBRARIES})
 
 add_dependencies( speech_pub ${PROJECT_NAME}_generate_messages_cpp )
-add_dependencies( drive_and_pick_speech ${PROJECT_NAME}_generate_messages_cpp )
 add_dependencies(testing ${PROJECT_NAME}_generate_messages_cpp )
 add_dependencies(robot_testing ${PROJECT_NAME}_generate_messages_cpp )
