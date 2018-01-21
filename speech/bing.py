@@ -277,11 +277,17 @@ def recognize(wave_file_path='bring_coffee.wav'):
 
 def main():
 
-    recognized_text = recognize()
-    print(recognized_text)
+    # recognized_text = recognize()
+    # print(recognized_text)
 
     # bing = BingSpeechAPI()
-    # bing.text_to_speech()
+    # bing.text_to_speech(text='Can I have some coffee?')
+
+    from bingtts import Translator
+    translator = Translator(os.getenv('BING_KEY', ''))
+    output = translator.speak("This is a text to speech translation", "en-US", "Female", "riff-16khz-16bit-mono-pcm")
+    with open("file.wav", "w") as f:
+        f.write(output)
 
 
 if __name__ == '__main__':

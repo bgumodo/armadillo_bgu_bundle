@@ -112,7 +112,7 @@ class SpeechDetector:
 
         return filename + '.wav'
 
-    def run(self):
+    def run(self, callback=None, params=None):
         """
         Listens to Microphone, extracts phrases from it and calls bing
         to decode the sound
@@ -161,6 +161,10 @@ class SpeechDetector:
                     #text = bing.recognize(speech, language='en-US')
                     text = bing2.recognize(filename)
                     lowercase_text = text.lower()
+                    if callback:
+                        callback(lowercase_text, params)
+                        break
+
                     commands = {'command-bring-coffee': ['johnny.*coffee'],
                                 'coffee-ready': ['coffee.*ready', 'here.*coffee'],
 								'coke': ['pick the can'],

@@ -9,13 +9,27 @@ _url = os.getenv('VISION_SERVER', '')
 _maxNumRetries = 10
 
 
+def parse_query(query):
+    params = {'query': query}
+
+    headers = dict()
+    headers['Content-Type'] = 'application/octet-stream'
+
+    response = requests.request('get', _url + '/parse_query', headers=headers, params=params)
+
+    string_io = StringIO(response.content)
+    json_result = json.load(string_io)
+
+    return json_result
+
+
 def processRequest(data):
     params = dict()
 
     headers = dict()
     headers['Content-Type'] = 'application/octet-stream'
 
-    response = requests.request('post', _url, data=data, headers=headers, params=params)
+    response = requests.request('post', _url + '/maskrcnn', data=data, headers=headers, params=params)
 
     string_io = StringIO(response.content)
     json_result = json.load(string_io)
@@ -46,6 +60,7 @@ def processRequest(data):
 
 def main():
     # Load raw image file into memory
+
     pathToFileInDisk = 'sample_image.jpg'
     with open(pathToFileInDisk, 'rb') as f:
         data = f.read()
@@ -54,7 +69,7 @@ def main():
 
     print(result)
 
-
+    print(parse_query("Show me the cup"))
 
 
 if __name__ == '__main__':
