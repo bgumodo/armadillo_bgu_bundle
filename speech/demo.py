@@ -68,9 +68,12 @@ class MyFirstGUI:
 
     def query_callback(self, query, ignore_params=None):
         global image_file
-
         query = query.replace('cap', 'cup')
         print(query)
+
+        if query == '<unrecognized speech>':
+            return
+
         parsed_query = parse_query(query)
 
         subject = parsed_query['subject']
@@ -110,6 +113,13 @@ class MyFirstGUI:
             sd.run(self.answer_callback, (candidate_boxes, subject))
 
     def answer_callback(self, answer, candidate_boxes_and_subject):
+        print(answer)
+        if answer=='<unrecognized speech>':
+            tts('I didn\'t understand. Please try again.')
+            sd = SpeechDetector()
+            sd.run(self.answer_callback, candidate_boxes_and_subject)
+            return
+
         if 'left' in answer:
             box = candidate_boxes_and_subject[0][0]
         else:
@@ -121,8 +131,6 @@ class MyFirstGUI:
 
 
     def start_demo(self):
-        self.query_callback('show me the cup')
-
         sd = SpeechDetector()
         sd.run(self.query_callback)
 
