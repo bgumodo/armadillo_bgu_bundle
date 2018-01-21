@@ -81,6 +81,8 @@ class MyFirstGUI:
         if label is None:
             return
 
+        print(label)
+
         with open(image_file, 'rb') as f:
             data = f.read()
 
@@ -94,7 +96,7 @@ class MyFirstGUI:
                 candidate_indices.append(i)
 
         if len(candidate_indices) == 1:
-            y1, x1, y2, x2 = response['result']['yx_boxes'][0]
+            y1, x1, y2, x2 = response['result']['yx_boxes'][candidate_indices[0]]
             self.draw_box(y1, x1, y2, x2)
             tts("Here is the " + subject)
         elif len(candidate_indices) == 2:
